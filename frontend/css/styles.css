@@ -1,0 +1,46 @@
+:root {
+  --cor-fundo: #f5f6f8;
+  --cor-superficie: #ffffff;
+  --cor-texto: #1d2433;
+  --cor-texto-suave: #5b6475;
+  --cor-borda: #d9dde5;
+  --cor-ok: #1f7a4d;
+  --cor-erro: #b42318;
+  --cor-foco: #2457c5;
+  --raio: 8px;
+  --fonte: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--fonte);
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+}
+
+:focus-visible { outline: 3px solid var(--cor-foco); outline-offset: 2px; }
+
+.painel {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 16px;
+}
+
+.painel__titulo { margin: 0 0 4px; font-size: 1.75rem; }
+.painel__subtitulo { margin: 0 0 24px; color: var(--cor-texto-suave); }
+.painel__nota { color: var(--cor-texto-suave); font-size: 0.9rem; }
+
+.saude {
+  background: var(--cor-superficie);
+  border: 1px solid var(--cor-borda);
+  border-radius: var(--raio);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.saude__titulo { margin: 0 0 8px; font-size: 1rem; }
+.saude__status { margin: 0; font-weight: 600; }
+.saude__status--ok { color: var(--cor-ok); }
+.saude__status--erro { color: var(--cor-erro); }

@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Banco local (gerado na execução — nunca versionar dados)
+*.db
+*.sqlite
+*.sqlite3
+
+# Segredos e configuração local
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Node (não usado no projeto; proteção caso alguma ferramenta seja instalada)
+node_modules/
+
+# Editores e sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Artefatos externos ao projeto
+*.zip

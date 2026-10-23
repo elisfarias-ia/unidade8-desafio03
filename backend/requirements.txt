@@ -1,0 +1,8 @@
+# Versões validadas em Python 3.15.1 / Windows 11 (Sprint 0, 2026-10-23).
+# uvicorn sem o extra [standard]: os extras compilados não têm wheel para 3.15 (ver ADR-004).
+fastapi==0.161.1
+uvicorn==0.54.0
+sqlalchemy==2.1.6
+pydantic==2.14.1
+pytest==9.1.1
+httpx==0.28.1
