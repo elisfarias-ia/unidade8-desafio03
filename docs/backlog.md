@@ -55,6 +55,20 @@ Estrutura `backend/` `frontend/` `tests/` `scripts/` `docs/`, MVP anterior em `l
 | S3-05 | Tela **Painel** (nova página inicial): período ajustável, estado vazio, próximas saídas | RF09, RF13 | ✅ |
 | S3-06 | Testes CA03 com base conhecida + mutação + desempenho com 10 mil (RNF04) | CA03, RNF04 | ✅ |
 
+## Sprint 4 — Homologação ✅
+
+**Objetivo:** validar o sistema de ponta a ponta com evidências. Sem funcionalidade nova de negócio (ADR-011).
+
+| ID | Item | Situação |
+|---|---|---|
+| S4-01 | CRUD, lista vazia, 3 indicadores após mudanças, persistência ao reiniciar e integração frontend/API, em navegador real | ✅ `homologar.ps1` |
+| S4-02 | Aceite da entrega (entregáveis, README, CA, suíte, lint) e instalação em clone limpo | ✅ |
+| S4-03 | Segredos: varredura de arquivos e histórico + testes do detector | ✅ |
+| S4-04 | Capturas de tela guardadas em `docs/evidencias/` com índice | ✅ |
+| S4-05 | Revisão independente do diff das sprints 2–4 | ✅ achados tratados em `execucao.md` |
+| S4-06 | Deploy no Vercel | ⛔ **não feito** por decisão da usuária (login pessoal; SQLite não persiste em serverless) |
+| S4-07 | Autenticação/login | ⛔ extensão opcional, não feita (pós-MVP) |
+
 ## Pós-MVP ⛔
 
 Autenticação e perfis · auditoria · exportação CSV/PDF · alertas de CNH e atraso · manutenção por km · Alembic e variáveis de ambiente · cobertura > 80% · Docker. (Antiga "Sprint 3", ver ADR-008.)
@@ -69,6 +83,8 @@ Autenticação e perfis · auditoria · exportação CSV/PDF · alertas de CNH e
 | D-04 | Capturas de tela de evidência (Playwright) | Decidir na S2; exige ADR (Node/Playwright) |
 | D-05 | Remover `legado/` ao fim do porte | Ao concluir a S3 |
 | D-08 | Filtros de deslocamentos ocupam a primeira tela em 375 px | Recolher em `<details>` no celular |
+| D-11 | Corrida na checagem de agenda (regra 5): duas gravações simultâneas do mesmo veículo/datas poderiam passar juntas (check-then-insert, sem trava no banco) | Aceito no MVP monousuário; usar `BEGIN IMMEDIATE` ou restrição no banco junto com o PostgreSQL (pós-MVP) |
+| D-12 | Sem testes automatizados de JavaScript (inclui `esc()`/XSS); só inspeção do revisor, testes estáticos e homologação no navegador | Exigiria Node (ADR-006); reavaliar se o front crescer |
 | D-10 | Modelos de saída herdam as regras de entrada: registro fora das regras (inserido por fora da API) faz a listagem devolver 500 | Separar `*Out` de `*Base`, sem validações |
 | D-09 | JavaScript sem lint (exigiria Node, ADR-006) | Decidir junto com as capturas de tela (D-04) |
 | D-06 | SQLite reaproveita o id do último registro excluído (sem `AUTOINCREMENT`) | Inofensivo hoje; rever junto com auditoria (pós-MVP) |

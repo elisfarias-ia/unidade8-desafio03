@@ -20,6 +20,7 @@ import {
 const $ = (id) => document.getElementById(id);
 let lista = [];
 let editandoId = null;
+let versao = 0; // Descarta respostas antigas que chegam depois de uma mais nova (achado da revisão).
 
 export function iniciar() {
   preencherOpcoes(
@@ -38,17 +39,22 @@ export function iniciar() {
 }
 
 export async function carregar() {
+  const minha = ++versao;
   const parametros = {
     busca: $("motoristas-busca").value.trim(),
     apenas_ativos: $("motoristas-ativos").checked ? "true" : "",
   };
+  let resposta;
   try {
-    lista = await api("/api/motoristas", { parametros });
+    resposta = await api("/api/motoristas", { parametros });
   } catch (erro) {
+    if (minha !== versao) return;
     $("motoristas-linhas").innerHTML = linhaVazia(8, erro.message);
     $("motoristas-contagem").textContent = "";
     return;
   }
+  if (minha !== versao) return;
+  lista = resposta;
   $("motoristas-contagem").textContent =
     `${lista.length} motorista${lista.length === 1 ? "" : "s"} encontrado${lista.length === 1 ? "" : "s"}`;
   $("motoristas-linhas").innerHTML = lista.length

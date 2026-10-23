@@ -50,8 +50,9 @@ Desafio03_Gestao_Veiculos/
 ├── tests/
 │   ├── conftest.py         SQLite em memória + trava contra o banco real
 │   └── backend/            Testes de API (pytest + TestClient)
-├── scripts/                configurar.ps1 · iniciar.ps1 · verificar.ps1
-├── docs/                   Requisitos, Arquitetura, backlog, teste, execucao
+├── scripts/                configurar · iniciar · verificar · seed · homologar (.ps1)
+├── homologacao/            homologar.py (Playwright) · verificar_segredos.py · requirements.txt
+├── docs/                   Requisitos, Arquitetura, backlog, teste, execucao, evidencias/
 └── legado/                 MVP anterior, só referência (ADR-003)
 ```
 

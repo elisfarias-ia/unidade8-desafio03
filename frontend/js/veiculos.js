@@ -21,6 +21,7 @@ import {
 const $ = (id) => document.getElementById(id);
 let lista = [];
 let editandoId = null;
+let versao = 0; // Descarta respostas antigas que chegam depois de uma mais nova (achado da revisão).
 
 export function iniciar() {
   const situacoes = Object.entries(SITUACAO_VEICULO).map(([k, v]) => [k, v.rotulo]);
@@ -39,17 +40,22 @@ export function iniciar() {
 }
 
 export async function carregar() {
+  const minha = ++versao;
   const parametros = {
     busca: $("veiculos-busca").value.trim(),
     status: $("veiculos-status").value,
   };
+  let resposta;
   try {
-    lista = await api("/api/veiculos", { parametros });
+    resposta = await api("/api/veiculos", { parametros });
   } catch (erro) {
+    if (minha !== versao) return;
     $("veiculos-linhas").innerHTML = linhaVazia(7, erro.message);
     $("veiculos-contagem").textContent = "";
     return;
   }
+  if (minha !== versao) return;
+  lista = resposta;
   $("veiculos-contagem").textContent =
     `${lista.length} veículo${lista.length === 1 ? "" : "s"} encontrado${lista.length === 1 ? "" : "s"}`;
   $("veiculos-linhas").innerHTML = lista.length

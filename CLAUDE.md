@@ -23,7 +23,7 @@ Sprints redefinidas pela ADR-008: S1 API + persistência · S2 interface · S3 d
 - **S1 ✅** Veículo, Motorista, Deslocamento: CRUD, regras 1–8, histórico com filtros, seed fictício, 41 testes.
 - **S2 ✅** telas responsivas (veículos, motoristas, deslocamentos) consumindo a API; 47 testes.
 - **S3 ✅** painel calculado por consulta (ADR-010): `dashboard.py`, tela `painel.js`; 57 testes + mutação das fórmulas.
-- **S4 ⏳ (próxima)** homologação ponta a ponta com evidências (capturas de tela); ver ADR da S4.
+- **S4 ✅** homologação ponta a ponta com capturas em `docs/evidencias/` (ADR-011): `.\scripts\homologar.ps1`. Pós-MVP: login, deploy (Vercel não feito), exportação.
 
 Gate de cada sprint (não avance se falhar): `.\scripts\verificar.ps1` (ruff + pytest) + aplicação real com SQLite em arquivo + registro em `docs/execucao.md`.
 
@@ -40,6 +40,7 @@ Gate de cada sprint (não avance se falhar): `.\scripts\verificar.ps1` (ruff + p
 .\scripts\iniciar.ps1        # API + interface em http://127.0.0.1:8000
 .\scripts\verificar.ps1      # versões + ruff check + ruff format --check + pytest -v
 .\scripts\seed.ps1           # dados fictícios (só com banco vazio)
+.\scripts\homologar.ps1      # homologação com Playwright + capturas (banco temporário; -SemClone pula o clone limpo)
 
 # equivalentes diretos
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir backend --reload
@@ -86,6 +87,7 @@ Banco: `backend/data/gestao_veiculos.db` (não versionado). Ao alterar um modelo
 7. Com histórico não se exclui — muda para inativo.
 8. Concluir viagem atualiza `km_atual` e devolve o veículo a `disponivel`.
 9. Indicadores sempre calculados por consulta.
+10. "Disponível"/"Em viagem" do veículo não podem contradizer as viagens em andamento; iniciar/reativar viagem respeita a regra 6 (ver `docs/Requisitos.md`).
 
 ## Ao receber uma tarefa
 
@@ -101,6 +103,8 @@ Banco: `backend/data/gestao_veiculos.db` (não versionado). Ao alterar um modelo
 - Trocar SQLite sem pedido explícito.
 - Dependência nova sem justificar e atualizar `backend/requirements.txt`.
 - Autenticação, exportação ou manutenção sem pedido — são pós-MVP (ADR-008).
-- Versionar `.env`, chaves, tokens, banco ou dados reais/institucionais (ADR-007).
+- Versionar `.env`, chaves, tokens, banco ou dados reais/institucionais (ADR-007). `python homologacao/verificar_segredos.py` varre arquivos e histórico; nenhum literal parecido com credencial, nem em testes (monte em tempo de execução).
+- Rodar a homologação ou testes contra o banco real: use `RODAGEM_DB` com um arquivo temporário.
+- Adicionar Node/Playwright às dependências do sistema (ADR-006/011): a homologação usa ambiente separado.
 - Apagar o banco da usuária sem avisar.
 - Usar o e-mail institucional nos commits (o repositório tem `user.email` local noreply).

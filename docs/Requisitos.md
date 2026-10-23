@@ -83,6 +83,7 @@ RNF09 foi incluído na Sprint 0 a partir da instrução do projeto (ADR-007).
 7. Veículo ou motorista com histórico não é excluído — passa a inativo.
 8. Concluir viagem atualiza `km_atual` e devolve o veículo para `disponivel`.
 9. Indicadores sempre calculados por consulta.
+10. As situações "Disponível" e "Em viagem" do veículo decorrem das viagens: com viagem em andamento não se marca "Disponível"; sem viagem em andamento não se marca "Em viagem" (409). Iniciar ou reativar uma viagem (ex.: previsto → em andamento) também respeita a regra 6. Ao concluir, cancelar ou excluir, o veículo só volta a "Disponível" quando não resta outra viagem em andamento. *(Acrescentada na S4, após a revisão independente do diff.)*
 
 ## 7. Critérios de aceite
 

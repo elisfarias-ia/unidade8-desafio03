@@ -30,6 +30,7 @@ let veiculos = [];
 let motoristas = [];
 let editandoId = null;
 let concluindo = null;
+let versao = 0; // Descarta respostas antigas que chegam depois de uma mais nova (achado da revisão).
 
 export function iniciar() {
   const finalidades = Object.entries(FINALIDADES);
@@ -41,8 +42,8 @@ export function iniciar() {
 
   const filtros = $("deslocamentos-filtros");
   filtros.addEventListener("submit", (e) => e.preventDefault());
+  // "input" já dispara em campos de texto, selects e datas; ouvir também "change" buscava duas vezes.
   filtros.addEventListener("input", adiar(carregarHistorico));
-  filtros.addEventListener("change", adiar(carregarHistorico));
   filtros.addEventListener("reset", () => setTimeout(carregarHistorico));
   $("deslocamentos-novo").addEventListener("click", () => abrirFormulario());
   $("deslocamentos-linhas").addEventListener("click", aoClicarLinha);
@@ -91,20 +92,25 @@ function rotuloMotorista(m) {
 }
 
 async function carregarHistorico() {
+  const minha = ++versao;
   const form = $("deslocamentos-filtros");
   const parametros = Object.fromEntries(new FormData(form));
   parametros.limite = LIMITE;
   const aviso = $("deslocamentos-filtro-erro");
   aviso.hidden = true;
+  let resposta;
   try {
-    lista = await api("/api/deslocamentos", { parametros });
+    resposta = await api("/api/deslocamentos", { parametros });
   } catch (erro) {
+    if (minha !== versao) return;
     aviso.textContent = erro.message;
     aviso.hidden = false;
     $("deslocamentos-linhas").innerHTML = linhaVazia(COLUNAS, "Corrija os filtros para ver o histórico.");
     $("deslocamentos-contagem").textContent = "";
     return;
   }
+  if (minha !== versao) return;
+  lista = resposta;
   const total = lista.length;
   $("deslocamentos-contagem").textContent =
     total >= LIMITE

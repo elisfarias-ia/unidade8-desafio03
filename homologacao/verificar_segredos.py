@@ -30,7 +30,8 @@ PADROES = {
 }
 PADROES_COMPILADOS = {nome: re.compile(rx) for nome, rx in PADROES.items()}
 
-EMAIL = re.compile(r"[\w.+-]+@([\w-]+(?:\.[\w-]+)+)")
+# o último rótulo do domínio precisa ser alfabético: evita falso positivo em "pacote@18.3.1"
+EMAIL = re.compile(r"[\w.+-]+@([\w-]+(?:\.[\w-]+)*\.[A-Za-z]{2,})")
 DOMINIOS_PERMITIDOS = {
     "users.noreply.github.com",
     "noreply.github.com",
@@ -59,8 +60,11 @@ class Achado:
 
 
 def mascarar(texto: str) -> str:
+    """Nunca imprime caracteres do segredo: só o tamanho (e o domínio, no caso de e-mail/URL)."""
     texto = texto.strip()
-    return texto[:6] + "…" + f" ({len(texto)} caracteres)" if len(texto) > 6 else "***"
+    if "@" in texto:
+        return f"…@{texto.rsplit('@', 1)[1]} ({len(texto)} caracteres)"
+    return f"*** ({len(texto)} caracteres)"
 
 
 def git(repo: Path, *args: str) -> str:
@@ -135,7 +139,7 @@ def verificar(repo: Path) -> list[Achado]:
     vistos: set[tuple[str, str, str]] = set()
     unicos: list[Achado] = []
     for a in varrer_arquivos(repo) + varrer_historico(repo):
-        chave = (a.tipo, a.local.split(" @ ")[0].split(":")[0], a.trecho)
+        chave = (a.tipo, a.local, a.trecho)  # local inclui linha ou commit: nada é escondido
         if chave not in vistos:
             vistos.add(chave)
             unicos.append(a)

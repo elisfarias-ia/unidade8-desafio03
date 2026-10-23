@@ -492,6 +492,32 @@ def cenario_crud(page, base, srv, reg, cap, dados):
     page.fill("#veiculos-busca", "")
     expect(page.locator("#veiculos-contagem")).to_contain_text("2 veículos")
 
+    # Corrida de respostas: a busca antiga (lenta) não pode sobrescrever a mais nova.
+    page.evaluate(
+        """() => {
+            const original = window.fetch.bind(window);
+            window.__fetchOriginal = original;
+            window.fetch = (u, o) => String(u).includes('busca=HOM1')
+                ? new Promise((r) => setTimeout(r, 1500)).then(() => original(u, o))
+                : original(u, o);
+        }"""
+    )
+    page.fill("#veiculos-busca", v1["placa"][:4])
+    page.wait_for_timeout(450)  # a 1ª busca já saiu (e está presa por 1,5 s)
+    page.fill("#veiculos-busca", v2["placa"][:4])
+    expect(page.locator("#veiculos-contagem")).to_contain_text("1 veículo")
+    page.wait_for_timeout(2200)  # agora a resposta lenta da 1ª busca chega
+    texto_corrida = page.locator("#veiculos-linhas").inner_text()
+    reg.verificar(
+        "RACE-1",
+        "Respostas fora de ordem: a busca antiga e lenta não sobrescreve a mais nova",
+        v2["placa"] in texto_corrida and v1["placa"] not in texto_corrida,
+        texto_corrida,
+    )
+    page.evaluate("() => { window.fetch = window.__fetchOriginal; }")
+    page.fill("#veiculos-busca", "")
+    expect(page.locator("#veiculos-contagem")).to_contain_text("2 veículos")
+
     page.get_by_role("button", name=f"Editar veículo {v2['placa']}").click()
     expect(page.locator("#dialogo-veiculo-titulo")).to_contain_text(v2["placa"])
     cap.tirar(page, "08-veiculo-edicao", "Edição de veículo com os dados atuais preenchidos")
@@ -651,6 +677,25 @@ def cenario_crud(page, base, srv, reg, cap, dados):
     )
     page.fill("#filtro-destino", "")
     expect(page.locator("#deslocamentos-contagem")).to_contain_text("2 deslocamentos")
+
+    pedidos_filtro: list[str] = []
+
+    def contar_filtro(r):
+        if "/api/deslocamentos?" in r.url and "finalidade=entrega" in r.url:
+            pedidos_filtro.append(r.url)
+
+    page.on("request", contar_filtro)
+    page.select_option("#filtro-finalidade", "entrega")
+    page.wait_for_timeout(900)
+    page.remove_listener("request", contar_filtro)
+    reg.verificar(
+        "BUSCA-1",
+        "Filtro de deslocamentos: escolher uma opção dispara uma única busca (antes eram duas)",
+        len(pedidos_filtro) == 1,
+        f"{len(pedidos_filtro)} requisições",
+    )
+    page.select_option("#filtro-finalidade", "")
+    expect(page.locator("#deslocamentos-contagem")).to_contain_text("2 deslocamentos")
     cap.tirar(
         page, "13-deslocamentos-lista", "Histórico de deslocamentos com os dois registros", True
     )
@@ -697,6 +742,26 @@ def cenario_indicadores(page, base, srv, reg, cap, ctx):
         "Painel após criar um deslocamento em andamento e um previsto",
         True,
     )
+
+    abrir(page, base, "veiculos")
+    page.get_by_role("button", name=f"Editar veículo {v1['placa']}").click()
+    page.select_option("#veiculo-status", "disponivel")
+    enviar(page, "#form-veiculo")
+    aquietar(page)  # sem 'expect': se o defeito voltar, queremos uma FALHA registrada, não um crash
+    situacao_v1 = next(x for x in srv.api("/api/veiculos") if x["placa"] == v1["placa"])["status"]
+    alerta_v1 = page.locator("#form-veiculo [data-alerta]").text_content() or ""
+    reg.verificar(
+        "REV-1",
+        "Veículo com viagem em andamento não pode virar 'Disponível' pela tela (409); situação mantida",
+        situacao_v1 == "em_viagem" and "viagem em andamento" in alerta_v1,
+        f"situação={situacao_v1}; alerta={alerta_v1!r}",
+    )
+    cap.tirar(
+        page,
+        "14b-veiculo-situacao-bloqueada-409",
+        "Tentativa de tornar 'Disponível' um veículo com viagem em andamento (409)",
+    )
+    page.click("#form-veiculo [data-fechar]")
 
     abrir(page, base, "deslocamentos")
     page.get_by_role("button", name="Concluir viagem para Destino Norte").click()
@@ -777,6 +842,28 @@ def cenario_indicadores(page, base, srv, reg, cap, ctx):
         "IND-4",
         "Painel: período sem dados → zeros e estado vazio; veículos continuam contados",
         ler_painel(page)["ind-desl"] == "0" and ler_painel(page)["ind-veiculos"] == "2",
+    )
+    recarregar_painel(page)
+
+    abrir(page, base, "veiculos")
+    with page.expect_request(lambda r: "/api/dashboard/indicadores" in r.url) as pedido:
+        abrir(page, base, "painel")
+    reg.verificar(
+        "IND-5",
+        "Painel: voltar à tela sem ter escolhido datas usa o período padrão da API (requisição sem datas)",
+        "data_inicio" not in pedido.value.url,
+        pedido.value.url,
+    )
+    page.fill("#painel-inicio", "2026-10-01")
+    page.fill("#painel-fim", "2026-10-31")
+    with page.expect_request(lambda r: "/api/dashboard/indicadores" in r.url) as pedido2:
+        page.click("#painel-periodo button[type=submit]")
+    reg.verificar(
+        "IND-6",
+        "Painel: as datas escolhidas pelo usuário são enviadas à API",
+        "data_inicio=2026-10-01" in pedido2.value.url
+        and "data_fim=2026-10-31" in pedido2.value.url,
+        pedido2.value.url,
     )
     recarregar_painel(page)
 

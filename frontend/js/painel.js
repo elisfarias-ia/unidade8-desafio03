@@ -4,6 +4,8 @@ import { api } from "./api.js";
 import { FINALIDADES, esc, formatarData, formatarKm, linhaVazia } from "./ui.js";
 
 const $ = (id) => document.getElementById(id);
+let versao = 0; // Descarta respostas antigas que chegam depois de uma mais nova (achado da revisão).
+let padrao = null; // período que a API devolveu quando o usuário não escolheu datas
 
 const numero = (n) => Number(n).toLocaleString("pt-BR");
 const porcento = (n) => `${Number(n).toLocaleString("pt-BR", { maximumFractionDigits: 1 })}%`;
@@ -22,10 +24,16 @@ export function iniciar() {
 }
 
 export async function carregar() {
+  const minha = ++versao;
   verificarSaude();
   const erro = $("painel-erro");
   erro.hidden = true;
-  const parametros = { data_inicio: $("painel-inicio").value, data_fim: $("painel-fim").value };
+  const inicio = $("painel-inicio").value;
+  const fim = $("painel-fim").value;
+  // Datas iguais às que a API devolveu como padrão contam como "padrão": assim a janela
+  // (hoje −90 / +30) acompanha o dia mesmo com a página aberta por muito tempo.
+  const usaPadrao = (!inicio && !fim) || (padrao && inicio === padrao.inicio && fim === padrao.fim);
+  const parametros = usaPadrao ? {} : { data_inicio: inicio, data_fim: fim };
   let indicadores;
   let proximas;
   try {
@@ -34,12 +42,15 @@ export async function carregar() {
       api("/api/dashboard/proximas-saidas"),
     ]);
   } catch (e) {
+    if (minha !== versao) return;
     erro.textContent = e.message;
     erro.hidden = false;
     $("painel-conteudo").hidden = true;
     $("painel-vazio").hidden = true;
     return;
   }
+  if (minha !== versao) return;
+  if (usaPadrao) padrao = { inicio: indicadores.periodo_inicio, fim: indicadores.periodo_fim };
   // As datas efetivas (inclusive o padrão) vêm da API.
   $("painel-inicio").value = indicadores.periodo_inicio;
   $("painel-fim").value = indicadores.periodo_fim;

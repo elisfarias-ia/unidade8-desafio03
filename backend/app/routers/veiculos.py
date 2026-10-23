@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import Deslocamento, StatusVeiculo, Veiculo
+from app.models import Deslocamento, StatusDeslocamento, StatusVeiculo, Veiculo
 from app.schemas import VeiculoCreate, VeiculoOut, VeiculoUpdate
 
 router = APIRouter(prefix="/api/veiculos", tags=["Veículos"])
@@ -26,6 +26,31 @@ def _garantir_placa_livre(db: Session, placa: str, ignorar_id: int | None = None
             409,
             f"Já existe um veículo com a placa {placa}. "
             "Confira a placa ou edite o cadastro existente.",
+        )
+
+
+def _validar_mudanca_de_situacao(db: Session, veiculo: Veiculo, nova: StatusVeiculo) -> None:
+    """'Disponível' e 'Em viagem' são consequência das viagens; não podem contradizê-las."""
+    em_andamento = (
+        db.query(Deslocamento.id)
+        .filter(
+            Deslocamento.veiculo_id == veiculo.id,
+            Deslocamento.status == StatusDeslocamento.em_andamento,
+        )
+        .first()
+        is not None
+    )
+    if nova == StatusVeiculo.disponivel and em_andamento:
+        raise HTTPException(
+            409,
+            f"O veículo {veiculo.placa} tem uma viagem em andamento. "
+            "Conclua ou cancele a viagem antes de torná-lo disponível.",
+        )
+    if nova == StatusVeiculo.em_viagem and not em_andamento:
+        raise HTTPException(
+            409,
+            f"O veículo {veiculo.placa} não tem viagem em andamento. A situação 'Em viagem' "
+            "é definida ao iniciar uma viagem; escolha outra situação.",
         )
 
 
@@ -67,6 +92,8 @@ def atualizar_veiculo(veiculo_id: int, dados: VeiculoUpdate, db: Session = Depen
     alteracoes = dados.model_dump(exclude_unset=True)
     if "placa" in alteracoes:
         _garantir_placa_livre(db, alteracoes["placa"], ignorar_id=veiculo_id)
+    if "status" in alteracoes and alteracoes["status"] != veiculo.status:
+        _validar_mudanca_de_situacao(db, veiculo, alteracoes["status"])
     for campo, valor in alteracoes.items():
         setattr(veiculo, campo, valor)
     db.commit()

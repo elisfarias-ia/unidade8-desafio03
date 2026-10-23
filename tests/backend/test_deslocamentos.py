@@ -235,3 +235,90 @@ def test_t1_34_veiculo_em_viagem_nao_e_liberado_por_outra_viagem(client, base):
     )
     assert concluida.status_code == 200
     assert client.get(veiculo_url).json()["status"] == "disponivel"
+
+
+def test_t1_35_editar_para_em_andamento_respeita_manutencao_e_motorista_inativo(client, base):
+    """Achado da revisão: a regra 6 também vale ao iniciar uma viagem já agendada."""
+    d = registrar(client, base).json()
+    veiculo_url = f"/api/veiculos/{base['veiculo_id']}"
+    url = f"/api/deslocamentos/{d['id']}"
+
+    client.put(veiculo_url, json={"status": "manutencao"})
+    recusa = client.put(url, json={"status": "em_andamento"})
+    assert recusa.status_code == 409
+    assert "manutenção" in recusa.json()["detail"]
+    assert client.get(veiculo_url).json()["status"] == "manutencao"  # não foi sobrescrito
+    assert client.get(url).json()["status"] == "previsto"
+    # editar outro campo de uma viagem já agendada continua permitido
+    assert client.put(url, json={"observacao": "segue agendada"}).status_code == 200
+
+    client.put(veiculo_url, json={"status": "disponivel"})
+    client.put(f"/api/motoristas/{base['motorista_id']}", json={"ativo": False})
+    assert client.put(url, json={"status": "em_andamento"}).status_code == 409
+    client.put(f"/api/motoristas/{base['motorista_id']}", json={"ativo": True})
+    assert client.put(url, json={"status": "em_andamento"}).status_code == 200
+    assert client.get(veiculo_url).json()["status"] == "em_viagem"
+
+
+def test_t1_36_situacao_do_veiculo_nao_contradiz_viagem_em_andamento(client, base):
+    """Achado da revisão: PUT /api/veiculos não pode desfazer o que a viagem estabelece."""
+    registrar(client, base, status="em_andamento")
+    veiculo_url = f"/api/veiculos/{base['veiculo_id']}"
+
+    recusa = client.put(veiculo_url, json={"status": "disponivel"})
+    assert recusa.status_code == 409
+    assert "viagem em andamento" in recusa.json()["detail"]
+    assert client.get(veiculo_url).json()["status"] == "em_viagem"
+    # a tela envia todos os campos: repetir a mesma situação não é mudança
+    assert client.put(veiculo_url, json={"cor": "Azul", "status": "em_viagem"}).status_code == 200
+    # manutenção durante a viagem é uma decisão explícita e é permitida
+    assert client.put(veiculo_url, json={"status": "manutencao"}).status_code == 200
+
+    outro = client.post(
+        "/api/veiculos",
+        json={"placa": "TST2B02", "marca": "Marca", "modelo": "Modelo", "ano": 2022},
+    ).json()
+    sem_viagem = client.put(f"/api/veiculos/{outro['id']}", json={"status": "em_viagem"})
+    assert sem_viagem.status_code == 409
+    assert "não tem viagem em andamento" in sem_viagem.json()["detail"]
+
+
+def test_t1_37_liberacao_do_veiculo_ao_cancelar_trocar_de_veiculo_e_excluir(client, base):
+    """Lacuna apontada na revisão: _liberar_se_ocioso em editar e excluir, não só em concluir."""
+
+    def situacao(veiculo_id):
+        return client.get(f"/api/veiculos/{veiculo_id}").json()["status"]
+
+    v1 = base["veiculo_id"]
+    v2 = client.post(
+        "/api/veiculos",
+        json={"placa": "TST2B02", "marca": "Marca", "modelo": "Modelo", "ano": 2022},
+    ).json()["id"]
+    a = registrar(
+        client, base, status="em_andamento", data_saida="2030-03-10", data_retorno="2030-03-12"
+    )
+    b = registrar(
+        client, base, status="em_andamento", data_saida="2030-04-10", data_retorno="2030-04-12"
+    )
+    a, b = a.json(), b.json()
+
+    # cancelar uma das duas pelo PUT mantém o veículo em viagem; cancelar a última o libera
+    client.put(f"/api/deslocamentos/{a['id']}", json={"status": "cancelado"})
+    assert situacao(v1) == "em_viagem"
+    client.put(f"/api/deslocamentos/{b['id']}", json={"status": "cancelado"})
+    assert situacao(v1) == "disponivel"
+
+    # trocar o veículo de uma viagem em andamento: o antigo só é liberado se não restar outra
+    client.put(f"/api/deslocamentos/{a['id']}", json={"status": "em_andamento"})
+    client.put(f"/api/deslocamentos/{b['id']}", json={"status": "em_andamento"})
+    assert situacao(v1) == "em_viagem"
+    client.put(f"/api/deslocamentos/{b['id']}", json={"veiculo_id": v2})
+    assert (situacao(v1), situacao(v2)) == ("em_viagem", "em_viagem")  # a ainda está no v1
+    client.put(f"/api/deslocamentos/{a['id']}", json={"veiculo_id": v2})
+    assert (situacao(v1), situacao(v2)) == ("disponivel", "em_viagem")
+
+    # excluir: a primeira exclusão mantém em viagem, a última libera
+    client.delete(f"/api/deslocamentos/{a['id']}")
+    assert situacao(v2) == "em_viagem"
+    client.delete(f"/api/deslocamentos/{b['id']}")
+    assert situacao(v2) == "disponivel"

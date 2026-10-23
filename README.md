@@ -166,6 +166,7 @@ legado/    MVP anterior, mantido só como referência
 - Destino em texto livre: "Centro" e "Unidade Centro" contam como destinos diferentes.
 - Ids de registros excluídos podem ser reaproveitados pelo SQLite.
 - Sem autenticação: use só na própria máquina ou rede local.
+- Uso simultâneo por várias pessoas **não** é garantido: a checagem de agenda (mesmo veículo, mesmas datas) não tem trava no banco, então dois cadastros no mesmo instante poderiam passar juntos (D-11 no backlog). Aceito no MVP de uso individual.
 - **Sem deploy**: o sistema roda localmente. Publicar no Vercel **não foi feito nem testado**; além disso, o SQLite em arquivo não persiste em funções serverless, então a persistência exigiria trocar o banco (fora do escopo).
 - Homologação só no Chromium (Playwright) e no Chromium embutido do app; **JavaScript sem lint** (sem Node no projeto) e **sem teste com leitor de tela, Firefox ou Safari**.
 - Validado apenas em Windows 11 com Python 3.15.1.

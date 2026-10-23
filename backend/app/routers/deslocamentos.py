@@ -190,6 +190,7 @@ def atualizar_deslocamento(
     d = _buscar(db, deslocamento_id)
     alteracoes = dados.model_dump(exclude_unset=True)
 
+    status_anterior = d.status
     veiculo_anterior = d.veiculo
     if "veiculo_id" in alteracoes and alteracoes["veiculo_id"] != d.veiculo_id:
         _veiculo_escalavel(db, alteracoes["veiculo_id"])
@@ -206,6 +207,11 @@ def atualizar_deslocamento(
     except ValueError as erro:
         db.rollback()
         raise HTTPException(422, str(erro)) from None
+
+    # Regra 6 também vale ao iniciar ou reativar uma viagem (ex.: previsto → em andamento).
+    if d.status in ATIVOS and d.status != status_anterior:
+        _veiculo_escalavel(db, d.veiculo_id)
+        _motorista_escalavel(db, d.motorista_id)
 
     campos_de_agenda = {"veiculo_id", "data_saida", "data_retorno", "status"}
     if d.status in ATIVOS and campos_de_agenda & alteracoes.keys():

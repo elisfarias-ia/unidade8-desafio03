@@ -77,6 +77,9 @@ Arquivos: `tests/backend/test_veiculos.py`, `test_motoristas.py`, `test_deslocam
 | T1-31 | Excluir deslocamento em andamento | veículo volta a `disponivel` |
 | T1-32 | Gravar pela API durante o teste | arquivo `backend/data/*.db` não muda |
 | T1-33 | Trava de conexão ativa | listener registrado no engine real |
+| T1-35 | Editar viagem para `em_andamento` com veículo em manutenção/inativo ou motorista inativo | 409; situação do veículo não é sobrescrita; editar outro campo continua permitido |
+| T1-36 | `PUT /api/veiculos` contradizendo as viagens | `disponivel` com viagem em andamento → 409; `em_viagem` sem viagem → 409; repetir a mesma situação e manutenção explícita passam |
+| T1-37 | Liberar o veículo ao cancelar, trocar de veículo e excluir | só volta a `disponivel` quando não resta outra viagem em andamento |
 | T1-M | Roteiro HTTP no servidor real + reinício | ver `execucao.md` (manual, reproduzível) |
 
 ### Sprint 2 — interface ✅
@@ -116,6 +119,24 @@ Arquivo: `tests/backend/test_dashboard.py` (base conhecida com 5 veículos e 9 d
 | T3-M | Mutação: 6 alterações deliberadas nas fórmulas | todas detectadas (manual, ver `execucao.md`) |
 | T3-X | Números da tela × SQL direto no SQLite | idênticos (manual, ver `execucao.md`) |
 | T1-34 | Regressão: veículo em viagem não é liberado por outra viagem | permanece `em_viagem` até a última concluir |
+
+### Sprint 4 — homologação ✅
+
+Executada por `.\scripts\homologar.ps1` (`homologacao/homologar.py`, Playwright + servidor real com banco temporário). Resultado por verificação em `docs/evidencias/resultado.json`; capturas e índice em `docs/evidencias/`.
+
+| Grupo | IDs | O que verifica |
+|---|---|---|
+| Lista vazia | LV-00 a LV-06 | banco vazio: painel com zeros e aviso, 3 listas com mensagem, formulário sem cadastros recusa com 422 |
+| CRUD pela tela | CRUD-V1..V4, CRUD-M0..M3, CRUD-D1..D6, CRUD-X | criar, ler, editar e excluir veículo, motorista e deslocamento; busca/filtros; exclusão bloqueada com histórico |
+| Aceite (CA) | CA01-b/c, CA02-a/b/c/d | placa única/inválida; registro e histórico; retorno antes da saída; conflito de agenda; filtro por destino |
+| 3 indicadores | IND-1 a IND-4 | painel após criar, concluir e excluir: igual ao **SQL independente** e a valores calculados à mão; período sem dados |
+| Persistência | PERS-0 a PERS-3 | servidor encerrado e reiniciado: API, painel e tabela iguais |
+| Seed e responsividade | SEED-1/2, RESP-1/2 | painel com 156 deslocamentos = SQL; sem rolagem horizontal a 1280 e 375 px |
+| Integração frontend/API | INT-1 a INT-5 | nenhuma resposta 5xx, nenhum 4xx em arquivo estático, nenhuma exceção JS, recusas 4xx só de ações deliberadas |
+| Revisão (achados) | RACE-1, BUSCA-1, IND-5/6, REV-1 | resposta antiga e lenta não sobrescreve a nova; uma só busca por filtro; período padrão x datas escolhidas; situação do veículo vs. viagem em andamento pela tela (cada um **detectou o defeito** quando reposto) |
+| Aceite da entrega | ENT-1 a ENT-5 | entregáveis, seções do README, testes dos CA, suíte e lint |
+| Segredos | SEG-1 a SEG-3, T4-01..T4-04 | varredura de arquivos **e histórico**; `.gitignore`; autor noreply; o detector detecta segredos plantados e não dá alarme falso |
+| Clone limpo | CLONE-1 a CLONE-5 | `git clone` + `configurar.ps1` + testes + seed + servidor, só com o que foi commitado |
 
 ## 4. Resultados
 
