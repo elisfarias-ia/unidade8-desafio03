@@ -81,3 +81,4 @@ legado/    MVP anterior, mantido só como referência
 | Porta 8000 ocupada | `.\scripts\iniciar.ps1 -Porta 8001` |
 | `ModuleNotFoundError` | Rode `.\scripts\configurar.ps1` de novo. |
 | Página mostra "Não foi possível falar com a API" | O servidor não está rodando ou caiu; veja o terminal. |
+| `DLL load failed … O nome do arquivo ou a extensão é muito grande` | O caminho da pasta é longo demais (limite de 260 caracteres do Windows). Mova o projeto para uma pasta mais curta, ex.: `C:\projetos\rodagem`. |
