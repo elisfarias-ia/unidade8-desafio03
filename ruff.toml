@@ -1,0 +1,13 @@
+# Lint do backend e dos testes (ADR-009). legado/ fica de fora.
+target-version = "py311"
+line-length = 100
+extend-exclude = ["legado"]
+
+[lint]
+# E/W pycodestyle, F pyflakes, I ordem de imports, B bugbear, UP sintaxe moderna
+select = ["E", "W", "F", "I", "B", "UP"]
+# B008: Depends()/Query() em parâmetros é o padrão do FastAPI
+ignore = ["B008"]
+
+[lint.isort]
+known-first-party = ["app"]

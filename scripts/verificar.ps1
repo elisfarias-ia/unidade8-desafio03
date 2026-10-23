@@ -15,10 +15,21 @@ Versao "git" "git"
 Versao "node" "node"
 "{0,-8} {1}" -f "pwsh", $PSVersionTable.PSVersion
 
-Write-Host "`n== Testes (pytest) =="
 if (-not (Test-Path ".venv\Scripts\python.exe")) {
     Write-Host "Ambiente virtual ausente. Rode .\scripts\configurar.ps1"
     exit 1
 }
+
+Write-Host "`n== Lint (ruff) =="
+& .\.venv\Scripts\python.exe -m ruff check .
+$lint = $LASTEXITCODE
+& .\.venv\Scripts\python.exe -m ruff format --check .
+$formato = $LASTEXITCODE
+
+Write-Host "`n== Testes (pytest) =="
 & .\.venv\Scripts\python.exe -m pytest -v
-exit $LASTEXITCODE
+$testes = $LASTEXITCODE
+
+Write-Host "`n== Resumo: lint=$lint formato=$formato testes=$testes (0 = ok) =="
+if ($lint -or $formato -or $testes) { exit 1 }
+exit 0

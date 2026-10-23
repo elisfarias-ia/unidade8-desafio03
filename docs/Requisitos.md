@@ -23,21 +23,21 @@ No MVP não há login: todos os perfis usam a mesma interface (ver Limitações 
 
 ## 3. Requisitos funcionais
 
-| ID | Requisito | Prioridade | Sprint |
+| ID | Requisito | Prioridade | Sprint (ADR-008) |
 |---|---|---|---|
-| RF01 | Cadastrar veículo (placa, marca, modelo, ano, cor, tipo, km, situação) | Obrigatório | 1 |
-| RF02 | Listar, filtrar, editar e excluir veículos | Obrigatório | 1 |
-| RF03 | Recusar placa duplicada ou fora dos padrões `ABC1234` / `ABC1D23` | Obrigatório | 1 |
-| RF04 | Cadastrar e editar motoristas (nome, CNH, categoria, validade, telefone, setor, situação) | Obrigatório | 1 |
-| RF05 | Registrar deslocamento (veículo, motorista, destino, saída, retorno, finalidade, km, observação) | Obrigatório | 2 |
-| RF06 | Classificar deslocamento: previsto, em andamento, realizado, cancelado | Obrigatório | 2 |
-| RF07 | Concluir viagem com km final e data de retorno, atualizando o km do veículo | Obrigatório | 2 |
-| RF08 | Histórico com filtros por veículo, motorista, destino, finalidade, situação e período | Obrigatório | 2 |
-| RF09 | Painel com indicadores calculados a partir dos registros | Obrigatório | 2 |
-| RF10 | Bloquear o mesmo veículo em intervalos sobrepostos | Desejável | 2 |
-| RF11 | Bloquear veículo em manutenção/inativo e motorista inativo | Desejável | 2 |
-| RF12 | Impedir exclusão de veículo/motorista com histórico | Desejável | 1–2 |
-| RF13 | Quadro das próximas saídas previstas no painel | Desejável | 2 |
+| RF01 | Cadastrar veículo (placa, marca, modelo, ano, cor, tipo, km, situação) | Obrigatório | 1 (API) · 2 (tela) |
+| RF02 | Listar, filtrar, editar e excluir veículos | Obrigatório | 1 (API) · 2 (tela) |
+| RF03 | Recusar placa duplicada ou fora dos padrões `ABC1234` / `ABC1D23` | Obrigatório | 1 (API) · 2 (tela) |
+| RF04 | Cadastrar e editar motoristas (nome, CNH, categoria, validade, telefone, setor, situação) | Obrigatório | 1 (API) · 2 (tela) |
+| RF05 | Registrar deslocamento (veículo, motorista, destino, saída, retorno, finalidade, km, observação) | Obrigatório | 1 (API) · 2 (tela) |
+| RF06 | Classificar deslocamento: previsto, em andamento, realizado, cancelado | Obrigatório | 1 (API) · 2 (tela) |
+| RF07 | Concluir viagem com km final e data de retorno, atualizando o km do veículo | Obrigatório | 1 (API) · 2 (tela) |
+| RF08 | Histórico com filtros por veículo, motorista, destino, finalidade, situação e período | Obrigatório | 1 (API) · 2 (tela) |
+| RF09 | Painel com indicadores calculados a partir dos registros | Obrigatório | 3 |
+| RF10 | Bloquear o mesmo veículo em intervalos sobrepostos | Desejável | 1 (API) · 2 (tela) |
+| RF11 | Bloquear veículo em manutenção/inativo e motorista inativo | Desejável | 1 (API) · 2 (tela) |
+| RF12 | Impedir exclusão de veículo/motorista com histórico | Desejável | 1 (API) · 2 (tela) |
+| RF13 | Quadro das próximas saídas previstas no painel | Desejável | 3 |
 
 ## 4. Indicadores do painel (RF09)
 
@@ -58,16 +58,16 @@ Janela padrão: 90 dias de histórico + 30 dias de agenda futura, ajustável.
 
 ## 5. Requisitos não funcionais
 
-| ID | Requisito | Situação na Sprint 0 |
+| ID | Requisito | Situação (após S1) |
 |---|---|---|
 | RNF01 | Backend e frontend com um único comando, sem build | Atendido (`scripts\iniciar.ps1`) |
 | RNF02 | SQLite local com `PRAGMA foreign_keys=ON` | Configurado em `backend/app/database.py` |
-| RNF03 | Responsivo de 320 px ao desktop | Pendente (Sprint 1) |
-| RNF04 | API ≤ 500 ms com até 10 mil deslocamentos | Pendente (medir na Sprint 2) |
+| RNF03 | Responsivo de 320 px ao desktop | Pendente (S2) |
+| RNF04 | API ≤ 500 ms com até 10 mil deslocamentos | Pendente (medir na S3) |
 | RNF05 | OpenAPI em `/docs` | Atendido |
-| RNF06 | Mensagens de erro em português, específicas | Pendente (Sprint 1) |
+| RNF06 | Mensagens de erro em português, específicas | Atendido na API (S1); exibição na S2 |
 | RNF07 | Acessibilidade mínima (foco, rótulos, contraste, reduced-motion) | Parcial (foco visível) |
-| RNF08 | Validação em duas camadas (Pydantic + rotas) | Pendente (Sprint 1) |
+| RNF08 | Validação em duas camadas (Pydantic + rotas) | Atendido (S1) |
 | RNF09 | Nenhum segredo, credencial real ou dado institucional no repositório | Atendido (ver `execucao.md`) |
 
 RNF09 foi incluído na Sprint 0 a partir da instrução do projeto (ADR-007).

@@ -2,7 +2,7 @@
 
 Sistema web para controlar a frota de uma organização: cadastro de veículos e motoristas, registro de deslocamentos, histórico e painel de indicadores.
 
-> **Situação: Sprint 0 concluída.** Existe apenas o esqueleto executável (verificação de saúde da API e do banco + página inicial). Cadastros, deslocamentos e painel entram nas Sprints 1 e 2 — ver [`docs/backlog.md`](docs/backlog.md).
+> **Situação: Sprint 1 concluída — API pronta, sem telas.** Veículos, motoristas e deslocamentos já funcionam pela API (CRUD, regras de negócio, histórico com filtros), com dados em SQLite. As telas entram na Sprint 2 e o painel de indicadores na Sprint 3 — ver [`docs/backlog.md`](docs/backlog.md). Até lá, use a API pela documentação interativa em http://127.0.0.1:8000/docs.
 
 ## Pré-requisitos
 
@@ -23,9 +23,14 @@ Na raiz do projeto:
 # 2. subir API + interface em http://127.0.0.1:8000
 .\scripts\iniciar.ps1
 
-# 3. verificar ferramentas e rodar os testes
+# 3. verificar ferramentas, lint e testes
 .\scripts\verificar.ps1
+
+# opcional: dados FICTÍCIOS de demonstração (só age com o banco vazio)
+.\scripts\seed.ps1
 ```
+
+O seed cria 6 veículos (placas `TST…`), 4 motoristas (`… Exemplo`, CNHs `000…`, telefones com DDD 00) e cerca de 150 deslocamentos entre 90 dias atrás e 30 dias à frente.
 
 Se o PowerShell bloquear scripts ("execução de scripts foi desabilitada"), libere só para o seu usuário:
 
@@ -41,7 +46,21 @@ python -m venv .venv
 pip install -r backend\requirements.txt
 uvicorn app.main:app --app-dir backend --reload
 pytest -v
+ruff check .
 ```
+
+## API (Sprint 1)
+
+| Recurso | Rotas | Observações |
+|---|---|---|
+| Veículos | `GET/POST /api/veiculos` · `GET/PUT/DELETE /api/veiculos/{id}` | Filtros `busca`, `status`. Placa `ABC1234`/`ABC1D23`, única. |
+| Motoristas | `GET/POST /api/motoristas` · `GET/PUT/DELETE /api/motoristas/{id}` | Filtros `busca`, `apenas_ativos`. CNH com 11 dígitos, única. |
+| Deslocamentos | `GET/POST /api/deslocamentos` · `GET/PUT/DELETE /api/deslocamentos/{id}` | Filtros `veiculo_id`, `motorista_id`, `destino`, `finalidade`, `status`, `data_inicio`, `data_fim`, `limite`. |
+| Concluir viagem | `POST /api/deslocamentos/{id}/concluir` | Corpo `{"km_final": 1250, "data_retorno": "2026-10-23"}`; atualiza o km do veículo. |
+
+Erros: `422` dado inválido · `404` não encontrado · `409` conflito de regra (placa/CNH repetida, agenda ocupada, veículo em manutenção, exclusão com histórico). Toda resposta de erro traz `detail` em português; o 422 traz também `erros` com campo e mensagem.
+
+Regras aplicadas: retorno não pode ser antes da saída; km final não pode ser menor que o inicial; viagem realizada exige data de retorno; mesmo veículo não fica em dois deslocamentos ativos no mesmo período; veículo em manutenção/inativo e motorista inativo não são escalados; quem tem histórico não é excluído (mude para inativo); concluir a viagem atualiza o km e devolve o veículo para "disponível".
 
 | Endereço | O que é |
 |---|---|
@@ -57,7 +76,7 @@ O banco SQLite é criado em `backend/data/gestao_veiculos.db` na primeira execu�
 backend/   API FastAPI (backend/app) e requirements.txt
 frontend/  HTML, CSS e JS puro servidos pelo FastAPI
 tests/     pytest (banco em memória)
-scripts/   configurar.ps1 · iniciar.ps1 · verificar.ps1
+scripts/   configurar.ps1 · iniciar.ps1 · verificar.ps1 · seed.ps1
 docs/      Requisitos · Arquitetura (ADRs) · backlog · teste · execucao
 legado/    MVP anterior, mantido só como referência
 ```
@@ -68,7 +87,9 @@ legado/    MVP anterior, mantido só como referência
 
 ## Limitações atuais
 
-- Nenhuma funcionalidade de negócio ainda (Sprint 0).
+- Ainda sem telas de cadastro e sem painel: a API só é usada por `/docs` ou outro cliente HTTP (telas na Sprint 2, painel na Sprint 3).
+- Destino em texto livre: "Centro" e "Unidade Centro" contam como destinos diferentes.
+- Ids de registros excluídos podem ser reaproveitados pelo SQLite.
 - Sem autenticação: use só na própria máquina ou rede local.
 - Validado apenas em Windows 11 com Python 3.15.1.
 - `uvicorn` sem extras de desempenho (`[standard]`), que não instalam no Python 3.15 — sem impacto em uso local.

@@ -1,19 +1,18 @@
-"""Ponto de entrada da aplicação: API + interface web.
-
-Sprint 0: apenas o esqueleto executável (verificação de saúde e frontend
-estático). As rotas de domínio entram a partir da Sprint 1.
-"""
+"""Ponto de entrada da aplicação: API + interface web."""
 
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import Depends, FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.database import criar_tabelas, get_db
+from app.erros import tratar_erro_validacao
+from app.routers import deslocamentos, motoristas, veiculos
 
 FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
 
@@ -27,9 +26,17 @@ async def lifespan(_: FastAPI):
 app = FastAPI(
     lifespan=lifespan,
     title="Rodagem — Gestão de Veículos e Deslocamentos",
-    description="API do sistema de controle de frota (Sprint 0 — esqueleto).",
-    version="0.0.1",
+    description=(
+        "API de controle de frota: cadastro de veículos e motoristas, "
+        "registro de deslocamentos e consulta de histórico."
+    ),
+    version="0.1.0",
 )
+
+app.add_exception_handler(RequestValidationError, tratar_erro_validacao)
+app.include_router(veiculos.router)
+app.include_router(motoristas.router)
+app.include_router(deslocamentos.router)
 
 
 @app.get("/api/saude", tags=["Infra"])

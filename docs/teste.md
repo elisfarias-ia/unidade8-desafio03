@@ -9,7 +9,7 @@
 | Interface | navegador | registrado em `execucao.md` | Tela carrega, chama a API, sem erro no console |
 
 Regras:
-- Os testes usam SQLite em memória (`tests/conftest.py`, `StaticPool` + `dependency_overrides`) e nunca tocam `backend/data/`.
+- Os testes usam SQLite em memória (`tests/conftest.py`, `StaticPool` + `dependency_overrides`) e nunca tocam `backend/data/`. Uma trava no `conftest.py` reprova qualquer teste que tente conectar no arquivo real.
 - Toda nova regra de negócio ganha teste; o nome do teste carrega o ID abaixo (`test_t0_01_…`, `test_ca1_…`).
 - Dados de teste são fictícios (placas e CNHs inventadas, nomes genéricos).
 
@@ -18,6 +18,7 @@ Regras:
 ```powershell
 .\scripts\verificar.ps1          # versões + pytest -v
 .\.venv\Scripts\python.exe -m pytest -v
+.\.venv\Scripts\python.exe -m ruff check .
 ```
 
 ## 3. Casos
@@ -33,31 +34,70 @@ Regras:
 | T0-05 | Servidor real | sobe, cria `backend/data/gestao_veiculos.db`, `/docs` 200 | manual, `execucao.md` |
 | T0-06 | Interface no navegador | mostra "API: ok · Banco: ok", console sem erros | manual, `execucao.md` |
 
-### Sprint 1 — cadastros (planejado)
+### Sprint 1 — entidades, persistência e API ✅
+
+Arquivos: `tests/backend/test_veiculos.py`, `test_motoristas.py`, `test_deslocamentos.py`, `test_isolamento.py`.
 
 | ID | Caso | Esperado |
 |---|---|---|
 | CA01-a | Criar veículo válido | 201, situação `disponivel`, aparece na listagem |
-| CA01-b | Placa duplicada (inclusive com hífen/minúscula) | 409 com mensagem de duplicidade |
-| CA01-c | Placa fora de `ABC1234`/`ABC1D23` | 422, nada gravado |
-| T1-01 | Consultar veículo inexistente | 404 |
-| T1-02 | Editar veículo | 200, campos alterados persistidos |
-| T1-03 | Excluir veículo sem histórico | 204, some da listagem |
-| T1-04 | CRUD de motorista + CNH duplicada | 201/200/204; duplicada → 409 |
+| CA01-b | Placa duplicada (com hífen/minúscula) | 409 citando a placa |
+| CA01-c | Placas fora de `ABC1234`/`ABC1D23` | 422 no campo `placa`, nada gravado |
+| T1-01 | Placa nos dois padrões | aceita e normalizada (`abc-1234` → `ABC1234`) |
+| T1-02 | Campos ausentes/fora de faixa | 422 com mensagens em português por campo |
+| T1-03 | Consultar por id / inexistente | 200 / 404 |
+| T1-04 | Busca por texto e filtro de situação | só os correspondentes |
+| T1-05 | Editar veículo (inclusive placa) | 200; campos não enviados ficam iguais |
+| T1-06 | Editar para placa de outro veículo | 409 |
+| T1-07 | Editar campo obrigatório para `null` | 422 (antes viraria erro 500) |
+| T1-08 | Editar inexistente | 404 |
+| T1-09 | Excluir sem histórico | 204, depois 404 |
+| T1-10 | Cadastrar e listar motorista | 201, `ativo=true` |
+| T1-11 | CNH normalizada e duplicada | `000.000.000-01` → `00000000001`; duplicada 409 |
+| T1-12 | CNH ≠ 11 dígitos, categoria inválida | 422 com mensagem específica |
+| T1-13 | Consultar/editar/inexistente | 200 / 404 |
+| T1-14 | Filtro `apenas_ativos` e busca | só os correspondentes |
+| T1-15 | Editar para CNH de outro | 409 |
+| T1-16 | Excluir motorista sem histórico | 204 |
+| CA02-a | Registrar deslocamento | 201, km inicial herdado, histórico traz veículo e motorista |
+| CA02-b | Retorno antes da saída | 422 |
+| CA02-c | Mesmo veículo em intervalo ocupado | 409 citando o deslocamento conflitante; dia seguinte livre |
+| CA02-d | Filtro por destino | só os correspondentes |
+| T1-20 | Filtros combinados (finalidade, período, situação, veículo, motorista) | corretos; período invertido 422 |
+| T1-21 | Obrigatórios e finalidade inválida | 422 com opções aceitas |
+| T1-22 | km final < inicial (informado ou herdado) | 422 |
+| T1-23 | `realizado` sem data de retorno | 422 |
+| T1-24 | Veículo em manutenção / motorista inativo | 409 com mensagem legível |
+| T1-25 | Veículo/motorista inexistente | 404 |
+| T1-26 | `em_andamento` ocupa o veículo; concluir libera e atualiza km | `em_viagem` → `disponivel`, km do veículo = km final; concluir de novo 409 |
+| T1-27 | Concluir com km/data incoerentes, sem km, cancelado, inexistente | 422 / 422 / 422 / 409 / 404 |
+| T1-28 | Editar deslocamento; edição recusada não grava | 200; 422/409 sem efeito colateral |
+| T1-29 | Editar para veículo inexistente | 404 (no legado gerava 500) |
+| T1-30 | Excluir veículo/motorista com histórico; excluir deslocamento | 409; 204; depois exclusão liberada |
+| T1-31 | Excluir deslocamento em andamento | veículo volta a `disponivel` |
+| T1-32 | Gravar pela API durante o teste | arquivo `backend/data/*.db` não muda |
+| T1-33 | Trava de conexão ativa | listener registrado no engine real |
+| T1-M | Roteiro HTTP no servidor real + reinício | ver `execucao.md` (manual, reproduzível) |
 
-### Sprint 2 — deslocamentos e painel (planejado)
+### Sprint 2 — interface (planejado)
 
 | ID | Caso | Esperado |
 |---|---|---|
-| CA02-a | Registrar deslocamento válido | 201, histórico traz veículo e motorista |
-| CA02-b | Retorno antes da saída | 422 |
-| CA02-c | Mesmo veículo em intervalo ocupado | 409 citando o conflito |
-| CA02-d | Filtro por destino | só registros correspondentes |
-| T2-01 | Veículo em manutenção / motorista inativo | 409 |
-| T2-02 | Concluir viagem | km do veículo atualizado, situação `disponivel` |
-| T2-03 | Excluir veículo/motorista com histórico | 409 |
-| CA03-a | Indicadores com base conhecida | totais e taxas conferem com cálculo manual |
+| T2-01 | Cada tela carrega dados reais da API | tabelas preenchidas com o seed |
+| T2-02 | Criar, editar e excluir veículo, motorista e deslocamento pela tela | refletido na API e após recarregar |
+| T2-03 | Erros 409/422 aparecem no formulário | mensagem `detail`, campo marcado |
+| T2-04 | Concluir viagem pela tela | km do veículo atualizado |
+| T2-05 | Largura 375 px e desktop | sem rolagem horizontal; navegação adequada |
+| T2-06 | Teclado e leitores | foco visível, rótulos associados |
+
+### Sprint 3 — dashboard (planejado)
+
+| ID | Caso | Esperado |
+|---|---|---|
+| CA03-a | Indicadores com base conhecida | totais e taxas iguais ao cálculo manual |
 | CA03-b | Mudar período | tudo recalculado só com `data_saida` no intervalo |
+| T3-01 | Base vazia | zeros, sem divisão por zero |
+| T3-02 | 10 mil deslocamentos | resposta ≤ 500 ms (RNF04) |
 
 ## 4. Resultados
 

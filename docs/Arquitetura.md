@@ -31,22 +31,24 @@ Desafio03_Gestao_Veiculos/
 ├── CONTEXTO.md             Concepção original (fonte dos requisitos)
 ├── README.md               Instalação e execução (Windows/PowerShell)
 ├── pytest.ini              testpaths=tests, pythonpath=backend
+├── ruff.toml               Lint e formatação (ADR-009)
 ├── backend/
 │   ├── requirements.txt    Dependências com versões fixas
 │   ├── data/               Banco SQLite local (não versionado)
 │   └── app/
-│       ├── main.py         FastAPI, /api/saude, frontend estático
+│       ├── main.py         FastAPI, routers, /api/saude, frontend estático
 │       ├── database.py     Engine, SessionLocal, get_db, PRAGMA FK
-│       ├── models.py       (Sprint 1) Veiculo, Motorista, Deslocamento
-│       ├── schemas.py      (Sprint 1) Contratos e validações
-│       ├── seed.py         (Sprint 1) Dados fictícios de demonstração
-│       └── routers/        (Sprint 1–2) veiculos, motoristas, deslocamentos, dashboard
-├── frontend/
+│       ├── models.py       Veiculo, Motorista, Deslocamento e enums
+│       ├── schemas.py      Contratos, normalização e validações de coerência
+│       ├── erros.py        Respostas 422 em português ({detail, erros[]})
+│       ├── seed.py         Dados fictícios de demonstração (só com banco vazio)
+│       └── routers/        veiculos · motoristas · deslocamentos  (dashboard: S3)
+├── frontend/               (telas de CRUD: S2)
 │   ├── index.html
 │   ├── css/styles.css
 │   └── js/app.js
 ├── tests/
-│   ├── conftest.py         Cliente de teste com SQLite em memória
+│   ├── conftest.py         SQLite em memória + trava contra o banco real
 │   └── backend/            Testes de API (pytest + TestClient)
 ├── scripts/                configurar.ps1 · iniciar.ps1 · verificar.ps1
 ├── docs/                   Requisitos, Arquitetura, backlog, teste, execucao
@@ -64,13 +66,14 @@ Desafio03_Gestao_Veiculos/
 | Pydantic | 2.14.1 | |
 | uvicorn | 0.54.0 | Sem o extra `[standard]` (ADR-004) |
 | pytest / httpx | 9.1.1 / 0.28.1 | |
+| ruff | 0.17.2 | Lint + formatação (ADR-009) |
 | Git | 2.55.0 | |
 | Node | 22.10.0 | Instalado, **não** é dependência (ADR-006) |
 
 ## 4. Convenções
 
 - Domínio, rotas, mensagens e comentários em português.
-- Erros HTTP: `422` formato · `404` inexistente · `409` conflito de regra.
+- Erros HTTP: `422` formato · `404` inexistente · `409` conflito de regra. Todo erro tem `detail` (texto pronto para exibir); o 422 traz também `erros: [{campo, mensagem}]` para marcar campos no formulário.
 - Frontend: toda string da API passa por `esc()`; CSS `.bloco__elemento` / `.bloco--variante`; cores apenas via variáveis de `:root`.
 - Testes nunca tocam o banco real (`dependency_overrides` + SQLite em memória).
 - Sem migrações até a Sprint 3: `Base.metadata.create_all`.
@@ -108,3 +111,14 @@ Formato: contexto → decisão → consequência. Status: **Aceita** salvo indic
 
 ### ADR-007 — Sem segredos e sem dados institucionais
 - **Decisão:** nenhum `.env`, chave ou credencial é versionado (`.gitignore` cobre `.env*`, `*.pem`, `*.key`, `*.db`). Dados de demonstração serão fictícios. O autor dos commits usa o e-mail noreply do GitHub configurado **só neste repositório**, em vez do e-mail institucional global.
+
+### ADR-008 — Replanejamento das sprints do MVP
+- **Contexto:** em 2026-10-23 a usuária redefiniu as sprints: **S1** = entidades Veículo, Motorista e Deslocamento (destino, data, finalidade) + persistência SQLite + API CRUD com validações e testes de API; **S2** = páginas responsivas, formulários, tabelas e integração com a API; **S3** = dashboard calculado (veículos, deslocamentos, viagens previstas e realizadas). O backlog anterior previa cadastros com tela na S1, deslocamentos + painel na S2 e autenticação/exportação na S3.
+- **Decisão:** adotar a nova divisão. Os itens da antiga Sprint 3 (autenticação, auditoria, exportação, alertas, manutenção, Alembic, Docker) passam a **Pós-MVP** e continuam fora do escopo. "Destino" segue como texto livre no Deslocamento (não é entidade própria), como no `CONTEXTO.md` §5.
+- **Exceção registrada:** a regra "API e interface na mesma entrega" fica suspensa na S1 — a API é entregue sem telas de CRUD e é exercitada por testes e por `/docs`. A S2 só é considerada pronta quando todas as rotas da S1 tiverem tela.
+- **Consequência:** entre a S1 e a S2, a página inicial continua sendo só a de situação do sistema.
+
+### ADR-009 — Ruff como lint
+- **Contexto:** o gate de cada sprint pede lint, e o projeto não tinha nenhum.
+- **Decisão:** adicionar `ruff` (wheel única, sem dependências, instala no Python 3.15) a `backend/requirements.txt`, configurado em `ruff.toml` na raiz, excluindo `legado/`.
+- **Alternativa descartada:** flake8 + plugins (mais pacotes para o mesmo resultado). JavaScript continua sem lint, pois exigiria Node (ADR-006).

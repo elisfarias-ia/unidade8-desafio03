@@ -37,6 +37,8 @@ def get_db():
 
 
 def criar_tabelas() -> None:
-    """Cria as tabelas registradas no metadata (ainda nenhuma na Sprint 0)."""
+    """Cria as tabelas que ainda não existem (sem migrações até o pós-MVP)."""
+    from app import models  # noqa: F401  (registra os modelos no metadata)
+
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     Base.metadata.create_all(bind=engine)

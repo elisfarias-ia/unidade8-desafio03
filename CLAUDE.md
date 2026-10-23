@@ -17,7 +17,14 @@ Leia antes de propor mudanças:
 
 ## Situação atual
 
-Sprint 0 concluída: esqueleto executável (`/api/saude` + página inicial), docs e git. Próxima: Sprint 1 (cadastros).
+Sprints redefinidas pela ADR-008: S1 API + persistência · S2 interface · S3 dashboard · resto é pós-MVP.
+
+- **S0 ✅** esqueleto, docs, git.
+- **S1 ✅** Veículo, Motorista, Deslocamento: CRUD, regras 1–8, histórico com filtros, seed fictício, 41 testes.
+- **S2 ⏳ (próxima)** telas responsivas consumindo a API da S1. Só está pronta quando toda rota da S1 tiver tela.
+- **S3 ⏳** dashboard calculado.
+
+Gate de cada sprint (não avance se falhar): `.\scripts\verificar.ps1` (ruff + pytest) + aplicação real com SQLite em arquivo + registro em `docs/execucao.md`.
 
 ## Stack
 
@@ -30,11 +37,13 @@ Sprint 0 concluída: esqueleto executável (`/api/saude` + página inicial), doc
 ```powershell
 .\scripts\configurar.ps1     # cria .venv e instala backend\requirements.txt
 .\scripts\iniciar.ps1        # API + interface em http://127.0.0.1:8000
-.\scripts\verificar.ps1      # versões das ferramentas + pytest -v
+.\scripts\verificar.ps1      # versões + ruff check + ruff format --check + pytest -v
+.\scripts\seed.ps1           # dados fictícios (só com banco vazio)
 
 # equivalentes diretos
 .\.venv\Scripts\python.exe -m uvicorn app.main:app --app-dir backend --reload
 .\.venv\Scripts\python.exe -m pytest -v
+.\.venv\Scripts\python.exe -m ruff check . ; .\.venv\Scripts\python.exe -m ruff format .
 ```
 
 Banco: `backend/data/gestao_veiculos.db` (não versionado). Ao alterar um modelo, **avise a usuária** antes de apagar o arquivo.
@@ -45,11 +54,13 @@ Banco: `backend/data/gestao_veiculos.db` (não versionado). Ao alterar um modelo
 |---|---|
 | `backend/app/main.py` | FastAPI, routers, frontend em `/` e `/static` |
 | `backend/app/database.py` | Engine, `SessionLocal`, `get_db`, `PRAGMA foreign_keys=ON` |
-| `backend/app/models.py` | (Sprint 1) entidades e enums |
-| `backend/app/schemas.py` | (Sprint 1) contratos e validações de formato/coerência |
-| `backend/app/routers/` | (Sprint 1–2) regras de negócio que consultam o banco |
-| `frontend/` | `index.html`, `css/styles.css`, `js/app.js` |
-| `tests/conftest.py` | Fixture `client` com SQLite em memória |
+| `backend/app/models.py` | `Veiculo`, `Motorista`, `Deslocamento` e enums |
+| `backend/app/schemas.py` | Contratos, normalização (placa, CNH) e coerência (datas, km) |
+| `backend/app/erros.py` | 422 em português: `{detail, erros: [{campo, mensagem}]}` |
+| `backend/app/routers/` | `veiculos`, `motoristas`, `deslocamentos` — regras que consultam o banco |
+| `backend/app/seed.py` | Dados fictícios de demonstração |
+| `frontend/` | `index.html`, `css/styles.css`, `js/app.js` (telas de CRUD: S2) |
+| `tests/conftest.py` | Fixture `client` com SQLite em memória + trava que reprova acesso ao banco real |
 | `tests/backend/` | Testes de API e critérios de aceite |
 | `scripts/` | Scripts PowerShell (sem acentos: PS 5.1 lê `.ps1` como ANSI) |
 
@@ -59,7 +70,8 @@ Banco: `backend/data/gestao_veiculos.db` (não versionado). Ao alterar um modelo
 - **Camadas:** formato/coerência em `schemas.py`; regra que consulta o banco no router; nenhuma regra de negócio no frontend.
 - **Erros HTTP:** `422` formato · `404` inexistente · `409` conflito de regra. Mensagem diz o que houve e como resolver, sem jargão.
 - **Frontend:** sem dependências novas; toda string da API passa por `esc()`; CSS `.bloco__elemento` e `.bloco--variante`; cores só por variáveis de `:root`.
-- **Banco:** sem migrações até a Sprint 3 (`create_all`).
+- **Banco:** sem migrações no MVP (`create_all`; Alembic é pós-MVP). `create_all` não altera tabela existente: ao mudar um modelo, avise a usuária antes de recriar o banco.
+- **Lint:** `ruff check .` e `ruff format .` (config em `ruff.toml`); o gate exige os dois limpos.
 - **Testes:** toda nova regra ganha teste com o ID de `docs/teste.md` no nome; nunca tocar o banco real.
 
 ## Regras de negócio que não podem quebrar
@@ -87,7 +99,7 @@ Banco: `backend/data/gestao_veiculos.db` (não versionado). Ao alterar um modelo
 - Framework de frontend, bundler ou gerenciador Node (ADR-006).
 - Trocar SQLite sem pedido explícito.
 - Dependência nova sem justificar e atualizar `backend/requirements.txt`.
-- Autenticação, exportação ou manutenção sem pedido — são da Sprint 3.
+- Autenticação, exportação ou manutenção sem pedido — são pós-MVP (ADR-008).
 - Versionar `.env`, chaves, tokens, banco ou dados reais/institucionais (ADR-007).
 - Apagar o banco da usuária sem avisar.
 - Usar o e-mail institucional nos commits (o repositório tem `user.email` local noreply).
