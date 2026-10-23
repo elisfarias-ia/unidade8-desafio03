@@ -66,7 +66,7 @@ tests/backend/test_saude.py::test_t0_04_documentacao_openapi_disponivel PASSED
 | `git init -b main` | ✅ |
 | Remoto `origin` → `https://github.com/elisfarias-ia/unidade8-desafio03.git` | ✅ acessível e vazio antes do primeiro push (`git ls-remote` sem refs) |
 | Commits | `chore: arquivar MVP anterior em legado/` · `feat: estrutura e documentação da Sprint 0` · `docs: registro de execução da Sprint 0` |
-| Push | Ver resultado no relatório final da sessão |
+| Push | ✅ `git push -u origin main` — `origin/main` em `46f0d98`, igual ao local (`git ls-remote`) |
 
 ### 6. O que **não** foi validado na Sprint 0
 
