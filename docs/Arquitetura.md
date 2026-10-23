@@ -134,3 +134,12 @@ Formato: contexto → decisão → consequência. Status: **Aceita** salvo indic
   - **Utilização da frota** = veículos distintos com ao menos um deslocamento **não cancelado** no período ÷ total de veículos × 100.
   - **Próximas saídas (RF13):** `previsto` com `data_saida >= hoje`, da mais próxima para a mais distante (padrão 5).
 - **Consequência:** base vazia retorna zeros, sem divisão por zero. As definições valem para os testes CA03 e para a homologação (S4).
+
+### ADR-011 — Sprint 4: homologação, Playwright (Python) e banco configurável
+- **Contexto:** em 2026-10-23 a usuária pediu uma "Sprint 4" de homologação (CRUD, validação de entrega, lista vazia, indicadores após mudanças, persistência ao reiniciar, integração frontend/API, ausência de segredos no git) com **capturas de tela de evidência guardadas no projeto**. A ADR-008 só definia S1–S3, e a ADR-006 proíbe Node como dependência do projeto. Decisões da usuária no chat: S3 antes da S4; manter o repositório atual; Playwright **fora do projeto**; sem deploy no Vercel.
+- **Decisão:**
+  1. **S4 = homologação**, sem funcionalidade nova de negócio. "Validação de entrega" = aceite (CA01–CA03 + entregáveis + instalação a partir de clone limpo).
+  2. **Playwright para Python** (`homologacao/requirements.txt`), instalado num ambiente virtual **separado** do de execução; não entra em `backend/requirements.txt` e o sistema roda sem ele. Isso mantém a ADR-006 (sem Node, sem `package.json`). Só os PNG e os scripts de homologação ficam no repositório; o navegador baixado fica fora (cache do Playwright).
+  3. **`RODAGEM_DB`** (opcional): caminho do arquivo SQLite. Sem a variável, nada muda (`backend/data/gestao_veiculos.db`). Serve para a homologação rodar com banco temporário sem tocar nos dados da usuária. É a única variável de ambiente do MVP; o restante da "configuração por ambiente" segue pós-MVP.
+  4. **Evidências** em `docs/evidencias/`, com um índice dizendo o que cada captura prova. Dados exclusivamente fictícios (seed).
+- **Consequência:** a homologação é reproduzível com `.\scripts\homologar.ps1`. O que não for executado de fato é marcado **NÃO TESTADO**. O deploy no Vercel **não** faz parte desta entrega (decisão da usuária; SQLite em arquivo não persiste em funções serverless).

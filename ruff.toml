@@ -11,3 +11,7 @@ ignore = ["B008"]
 
 [lint.isort]
 known-first-party = ["app"]
+
+[lint.per-file-ignores]
+# script de homologação: mensagens e seletores longos são legíveis em linha única
+"homologacao/*" = ["E501"]

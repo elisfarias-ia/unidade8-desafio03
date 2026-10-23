@@ -58,14 +58,15 @@ function desenhar(i) {
   // 1) Veículos
   $("ind-veiculos").textContent = numero(i.total_veiculos);
   $("ind-veiculos-d").textContent =
-    `${numero(i.veiculos_disponiveis)} disponíveis · ${numero(i.veiculos_em_viagem)} em viagem · ` +
-    `${numero(i.veiculos_manutencao)} em manutenção · ${numero(i.veiculos_inativos)} inativos`;
+    `${plural(i.veiculos_disponiveis, "disponível", "disponíveis")} · ${numero(i.veiculos_em_viagem)} em viagem · ` +
+    `${numero(i.veiculos_manutencao)} em manutenção · ${plural(i.veiculos_inativos, "inativo", "inativos")}`;
 
   // 2) Deslocamentos
   $("ind-desl").textContent = numero(i.total_deslocamentos);
   $("ind-desl-d").textContent =
-    `${numero(i.viagens_previstas)} previstos · ${numero(i.viagens_em_andamento)} em andamento · ` +
-    `${numero(i.viagens_realizadas)} realizados · ${numero(i.viagens_canceladas)} cancelados`;
+    `${plural(i.viagens_previstas, "previsto", "previstos")} · ${numero(i.viagens_em_andamento)} em andamento · ` +
+    `${plural(i.viagens_realizadas, "realizado", "realizados")} · ` +
+    `${plural(i.viagens_canceladas, "cancelado", "cancelados")}`;
 
   // 3) Viagens previstas × realizadas
   $("ind-viag").textContent = `${numero(i.viagens_previstas)} × ${numero(i.viagens_realizadas)}`;

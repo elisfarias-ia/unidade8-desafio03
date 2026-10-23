@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 .venv/
+.venv-*/
 venv/
 .pytest_cache/
 .coverage
@@ -30,3 +31,6 @@ Thumbs.db
 
 # Artefatos externos ao projeto
 *.zip
+
+# Saídas temporárias da homologação (as capturas de evidência ficam em docs/evidencias)
+homologacao/saida/

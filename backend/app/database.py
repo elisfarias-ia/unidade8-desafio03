@@ -1,12 +1,14 @@
 """Conexão com o banco SQLite e sessão do SQLAlchemy."""
 
+import os
 from pathlib import Path
 
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
-DB_PATH = BACKEND_DIR / "data" / "gestao_veiculos.db"
+# RODAGEM_DB (opcional) aponta para outro arquivo; usado na homologação (ADR-011).
+DB_PATH = Path(os.environ.get("RODAGEM_DB") or BACKEND_DIR / "data" / "gestao_veiculos.db")
 DATABASE_URL = f"sqlite:///{DB_PATH}"
 
 engine = create_engine(
