@@ -2,7 +2,7 @@
 
 Sistema web para controlar a frota de uma organização: cadastro de veículos e motoristas, registro de deslocamentos, histórico e painel de indicadores.
 
-> **Situação: Sprint 1 concluída — API pronta, sem telas.** Veículos, motoristas e deslocamentos já funcionam pela API (CRUD, regras de negócio, histórico com filtros), com dados em SQLite. As telas entram na Sprint 2 e o painel de indicadores na Sprint 3 — ver [`docs/backlog.md`](docs/backlog.md). Até lá, use a API pela documentação interativa em http://127.0.0.1:8000/docs.
+> **Situação: Sprint 2 concluída — API e interface funcionando.** Cadastro, edição, exclusão e consulta de veículos, motoristas e deslocamentos pela tela, com dados em SQLite. O painel de indicadores entra na Sprint 3 — ver [`docs/backlog.md`](docs/backlog.md).
 
 ## Pré-requisitos
 
@@ -49,6 +49,14 @@ pytest -v
 ruff check .
 ```
 
+## Como usar a interface
+
+1. Rode `.\scripts\seed.ps1` (dados fictícios) e `.\scripts\iniciar.ps1`; abra http://127.0.0.1:8000.
+2. **Veículos** e **Motoristas**: "Novo …" abre o formulário; a busca filtra enquanto você digita; **Editar** e **Excluir** ficam em cada linha (a exclusão pede confirmação).
+3. **Deslocamentos**: "Registrar deslocamento" → escolha veículo, motorista, destino, datas e finalidade. Os 7 filtros combinam entre si. **Concluir** informa o km final e o retorno e atualiza o km do veículo.
+4. Erros da API (placa repetida, agenda ocupada, veículo em manutenção…) aparecem no próprio formulário, com o campo marcado.
+5. No celular a navegação vai para o rodapé e as tabelas viram cartões.
+
 ## API (Sprint 1)
 
 | Recurso | Rotas | Observações |
@@ -74,7 +82,7 @@ O banco SQLite é criado em `backend/data/gestao_veiculos.db` na primeira execu�
 
 ```
 backend/   API FastAPI (backend/app) e requirements.txt
-frontend/  HTML, CSS e JS puro servidos pelo FastAPI
+frontend/  HTML, CSS e JS puro (módulos ES, sem build) servidos pelo FastAPI
 tests/     pytest (banco em memória)
 scripts/   configurar.ps1 · iniciar.ps1 · verificar.ps1 · seed.ps1
 docs/      Requisitos · Arquitetura (ADRs) · backlog · teste · execucao
@@ -87,7 +95,10 @@ legado/    MVP anterior, mantido só como referência
 
 ## Limitações atuais
 
-- Ainda sem telas de cadastro e sem painel: a API só é usada por `/docs` ou outro cliente HTTP (telas na Sprint 2, painel na Sprint 3).
+- Sem painel de indicadores ainda (Sprint 3).
+- Em celular (375 px) os 7 filtros de deslocamentos ocupam a primeira tela antes da lista.
+- Sem autenticação nem controle de permissões: qualquer pessoa com acesso à página altera os dados.
+- Interface testada só no Chromium embutido, em larguras emuladas; sem teste com leitor de tela, Firefox ou Safari.
 - Destino em texto livre: "Centro" e "Unidade Centro" contam como destinos diferentes.
 - Ids de registros excluídos podem ser reaproveitados pelo SQLite.
 - Sem autenticação: use só na própria máquina ou rede local.

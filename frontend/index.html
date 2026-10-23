@@ -7,19 +7,298 @@
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
 <body>
-  <main class="painel">
-    <h1 class="painel__titulo">Rodagem</h1>
-    <p class="painel__subtitulo">Gestão de veículos e deslocamentos — Sprint 0</p>
+  <a class="pular" href="#conteudo">Pular para o conteúdo</a>
 
-    <section class="saude" aria-live="polite">
-      <h2 class="saude__titulo">Situação do sistema</h2>
-      <p id="saude-status" class="saude__status">Verificando…</p>
-    </section>
+  <div class="estrutura">
+    <nav class="navegacao" aria-label="Seções">
+      <span class="navegacao__marca">Rodagem</span>
+      <a class="navegacao__link" href="#inicio" data-tela="inicio">
+        <span class="navegacao__icone" aria-hidden="true">⌂</span>Início</a>
+      <a class="navegacao__link" href="#deslocamentos" data-tela="deslocamentos">
+        <span class="navegacao__icone" aria-hidden="true">⇄</span>Deslocamentos</a>
+      <a class="navegacao__link" href="#veiculos" data-tela="veiculos">
+        <span class="navegacao__icone" aria-hidden="true">▣</span>Veículos</a>
+      <a class="navegacao__link" href="#motoristas" data-tela="motoristas">
+        <span class="navegacao__icone" aria-hidden="true">☺</span>Motoristas</a>
+    </nav>
 
-    <p class="painel__nota">
-      Esqueleto do projeto. Cadastros, deslocamentos e painel entram nas próximas sprints.
-    </p>
-  </main>
-  <script src="/static/js/app.js"></script>
+    <main id="conteudo" class="conteudo" tabindex="-1">
+
+      <!-- Início -->
+      <section class="tela" id="tela-inicio" data-titulo="Início" hidden>
+        <header class="tela__cabecalho">
+          <h1 class="tela__titulo">Rodagem</h1>
+          <p class="tela__subtitulo">Gestão de veículos e deslocamentos</p>
+        </header>
+        <div class="cartao">
+          <h2 class="cartao__titulo">Situação do sistema</h2>
+          <p id="saude-status" class="saude" aria-live="polite">Verificando…</p>
+        </div>
+        <div class="atalhos">
+          <a class="atalhos__item" href="#deslocamentos">Registrar ou consultar deslocamentos</a>
+          <a class="atalhos__item" href="#veiculos">Cadastrar veículos</a>
+          <a class="atalhos__item" href="#motoristas">Cadastrar motoristas</a>
+        </div>
+        <p class="nota">O painel de indicadores chega na Sprint 3.</p>
+      </section>
+
+      <!-- Veículos -->
+      <section class="tela" id="tela-veiculos" data-titulo="Veículos" hidden>
+        <header class="tela__cabecalho tela__cabecalho--acoes">
+          <h1 class="tela__titulo">Veículos</h1>
+          <button type="button" class="botao botao--primario" id="veiculos-novo">Novo veículo</button>
+        </header>
+        <form class="filtros" id="veiculos-filtros" role="search">
+          <div class="campo">
+            <label class="campo__rotulo" for="veiculos-busca">Buscar</label>
+            <input class="campo__entrada" id="veiculos-busca" name="busca" type="search"
+                   placeholder="Placa, marca ou modelo">
+          </div>
+          <div class="campo">
+            <label class="campo__rotulo" for="veiculos-status">Situação</label>
+            <select class="campo__entrada" id="veiculos-status" name="status">
+              <option value="">Todas</option>
+            </select>
+          </div>
+        </form>
+        <p class="contagem" id="veiculos-contagem" aria-live="polite"></p>
+        <div class="tabela-rolagem">
+          <table class="tabela">
+            <thead>
+              <tr>
+                <th scope="col">Placa</th><th scope="col">Veículo</th><th scope="col">Ano</th>
+                <th scope="col">Tipo</th><th scope="col" class="tabela__num">Km atual</th>
+                <th scope="col">Situação</th><th scope="col"><span class="oculto">Ações</span></th>
+              </tr>
+            </thead>
+            <tbody id="veiculos-linhas"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Motoristas -->
+      <section class="tela" id="tela-motoristas" data-titulo="Motoristas" hidden>
+        <header class="tela__cabecalho tela__cabecalho--acoes">
+          <h1 class="tela__titulo">Motoristas</h1>
+          <button type="button" class="botao botao--primario" id="motoristas-novo">Novo motorista</button>
+        </header>
+        <form class="filtros" id="motoristas-filtros" role="search">
+          <div class="campo">
+            <label class="campo__rotulo" for="motoristas-busca">Buscar</label>
+            <input class="campo__entrada" id="motoristas-busca" name="busca" type="search"
+                   placeholder="Nome, CNH ou setor">
+          </div>
+          <div class="campo campo--marcar">
+            <input id="motoristas-ativos" name="apenas_ativos" type="checkbox">
+            <label for="motoristas-ativos">Somente ativos</label>
+          </div>
+        </form>
+        <p class="contagem" id="motoristas-contagem" aria-live="polite"></p>
+        <div class="tabela-rolagem">
+          <table class="tabela">
+            <thead>
+              <tr>
+                <th scope="col">Nome</th><th scope="col">CNH</th><th scope="col">Categoria</th>
+                <th scope="col">Validade</th><th scope="col">Setor</th><th scope="col">Telefone</th>
+                <th scope="col">Situação</th><th scope="col"><span class="oculto">Ações</span></th>
+              </tr>
+            </thead>
+            <tbody id="motoristas-linhas"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Deslocamentos -->
+      <section class="tela" id="tela-deslocamentos" data-titulo="Deslocamentos" hidden>
+        <header class="tela__cabecalho tela__cabecalho--acoes">
+          <h1 class="tela__titulo">Deslocamentos</h1>
+          <button type="button" class="botao botao--primario" id="deslocamentos-novo">Registrar deslocamento</button>
+        </header>
+        <form class="filtros filtros--amplo" id="deslocamentos-filtros" role="search">
+          <div class="campo">
+            <label class="campo__rotulo" for="filtro-destino">Destino</label>
+            <input class="campo__entrada" id="filtro-destino" name="destino" type="search">
+          </div>
+          <div class="campo">
+            <label class="campo__rotulo" for="filtro-veiculo">Veículo</label>
+            <select class="campo__entrada" id="filtro-veiculo" name="veiculo_id"></select>
+          </div>
+          <div class="campo">
+            <label class="campo__rotulo" for="filtro-motorista">Motorista</label>
+            <select class="campo__entrada" id="filtro-motorista" name="motorista_id"></select>
+          </div>
+          <div class="campo">
+            <label class="campo__rotulo" for="filtro-finalidade">Finalidade</label>
+            <select class="campo__entrada" id="filtro-finalidade" name="finalidade"></select>
+          </div>
+          <div class="campo">
+            <label class="campo__rotulo" for="filtro-status">Situação</label>
+            <select class="campo__entrada" id="filtro-status" name="status"></select>
+          </div>
+          <div class="campo">
+            <label class="campo__rotulo" for="filtro-inicio">Saída a partir de</label>
+            <input class="campo__entrada" id="filtro-inicio" name="data_inicio" type="date">
+          </div>
+          <div class="campo">
+            <label class="campo__rotulo" for="filtro-fim">Saída até</label>
+            <input class="campo__entrada" id="filtro-fim" name="data_fim" type="date">
+          </div>
+          <div class="filtros__acoes">
+            <button type="reset" class="botao">Limpar filtros</button>
+          </div>
+        </form>
+        <p class="alerta alerta--erro" id="deslocamentos-filtro-erro" role="alert" hidden></p>
+        <p class="contagem" id="deslocamentos-contagem" aria-live="polite"></p>
+        <div class="tabela-rolagem">
+          <table class="tabela">
+            <thead>
+              <tr>
+                <th scope="col">Saída</th><th scope="col">Retorno</th><th scope="col">Veículo</th>
+                <th scope="col">Motorista</th><th scope="col">Destino</th><th scope="col">Finalidade</th>
+                <th scope="col">Situação</th><th scope="col" class="tabela__num">Km</th>
+                <th scope="col"><span class="oculto">Ações</span></th>
+              </tr>
+            </thead>
+            <tbody id="deslocamentos-linhas"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Formulário de veículo -->
+  <dialog class="dialogo" id="dialogo-veiculo" aria-labelledby="dialogo-veiculo-titulo">
+    <form class="formulario" id="form-veiculo" method="dialog" novalidate>
+      <h2 class="dialogo__titulo" id="dialogo-veiculo-titulo">Veículo</h2>
+      <p class="alerta alerta--erro" data-alerta role="alert" hidden></p>
+      <div class="formulario__grade">
+        <div class="campo"><label class="campo__rotulo" for="veiculo-placa">Placa *</label>
+          <input class="campo__entrada campo__entrada--maiusculas" id="veiculo-placa" name="placa"
+                 required maxlength="8" autocomplete="off" placeholder="ABC1D23"></div>
+        <div class="campo"><label class="campo__rotulo" for="veiculo-ano">Ano *</label>
+          <input class="campo__entrada" id="veiculo-ano" name="ano" type="number" data-tipo="inteiro"
+                 required inputmode="numeric"></div>
+        <div class="campo"><label class="campo__rotulo" for="veiculo-marca">Marca *</label>
+          <input class="campo__entrada" id="veiculo-marca" name="marca" required maxlength="60"></div>
+        <div class="campo"><label class="campo__rotulo" for="veiculo-modelo">Modelo *</label>
+          <input class="campo__entrada" id="veiculo-modelo" name="modelo" required maxlength="80"></div>
+        <div class="campo"><label class="campo__rotulo" for="veiculo-cor">Cor</label>
+          <input class="campo__entrada" id="veiculo-cor" name="cor" maxlength="30"></div>
+        <div class="campo"><label class="campo__rotulo" for="veiculo-tipo">Tipo</label>
+          <input class="campo__entrada" id="veiculo-tipo" name="tipo" maxlength="40"
+                 placeholder="Sedan, van, caminhonete…"></div>
+        <div class="campo"><label class="campo__rotulo" for="veiculo-km">Km atual</label>
+          <input class="campo__entrada" id="veiculo-km" name="km_atual" type="number" data-tipo="numero"
+                 step="0.1" inputmode="decimal"></div>
+        <div class="campo"><label class="campo__rotulo" for="veiculo-status">Situação</label>
+          <select class="campo__entrada" id="veiculo-status" name="status"></select></div>
+      </div>
+      <div class="formulario__acoes">
+        <button type="button" class="botao" data-fechar>Cancelar</button>
+        <button type="submit" class="botao botao--primario" value="salvar">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Formulário de motorista -->
+  <dialog class="dialogo" id="dialogo-motorista" aria-labelledby="dialogo-motorista-titulo">
+    <form class="formulario" id="form-motorista" method="dialog" novalidate>
+      <h2 class="dialogo__titulo" id="dialogo-motorista-titulo">Motorista</h2>
+      <p class="alerta alerta--erro" data-alerta role="alert" hidden></p>
+      <div class="formulario__grade">
+        <div class="campo campo--largo"><label class="campo__rotulo" for="motorista-nome">Nome *</label>
+          <input class="campo__entrada" id="motorista-nome" name="nome" required maxlength="120"></div>
+        <div class="campo"><label class="campo__rotulo" for="motorista-cnh">CNH (11 dígitos) *</label>
+          <input class="campo__entrada" id="motorista-cnh" name="cnh" required inputmode="numeric"
+                 autocomplete="off" maxlength="14"></div>
+        <div class="campo"><label class="campo__rotulo" for="motorista-categoria">Categoria *</label>
+          <select class="campo__entrada" id="motorista-categoria" name="categoria_cnh" required></select></div>
+        <div class="campo"><label class="campo__rotulo" for="motorista-validade">Validade da CNH</label>
+          <input class="campo__entrada" id="motorista-validade" name="validade_cnh" type="date"></div>
+        <div class="campo"><label class="campo__rotulo" for="motorista-telefone">Telefone</label>
+          <input class="campo__entrada" id="motorista-telefone" name="telefone" type="tel" maxlength="20"></div>
+        <div class="campo"><label class="campo__rotulo" for="motorista-setor">Setor</label>
+          <input class="campo__entrada" id="motorista-setor" name="setor" maxlength="60"></div>
+        <div class="campo campo--marcar">
+          <input id="motorista-ativo" name="ativo" type="checkbox" data-tipo="bool">
+          <label for="motorista-ativo">Ativo (pode ser escalado)</label></div>
+      </div>
+      <div class="formulario__acoes">
+        <button type="button" class="botao" data-fechar>Cancelar</button>
+        <button type="submit" class="botao botao--primario" value="salvar">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Formulário de deslocamento -->
+  <dialog class="dialogo" id="dialogo-deslocamento" aria-labelledby="dialogo-deslocamento-titulo">
+    <form class="formulario" id="form-deslocamento" method="dialog" novalidate>
+      <h2 class="dialogo__titulo" id="dialogo-deslocamento-titulo">Deslocamento</h2>
+      <p class="alerta alerta--erro" data-alerta role="alert" hidden></p>
+      <div class="formulario__grade">
+        <div class="campo"><label class="campo__rotulo" for="desl-veiculo">Veículo *</label>
+          <select class="campo__entrada" id="desl-veiculo" name="veiculo_id" data-tipo="inteiro" required></select></div>
+        <div class="campo"><label class="campo__rotulo" for="desl-motorista">Motorista *</label>
+          <select class="campo__entrada" id="desl-motorista" name="motorista_id" data-tipo="inteiro" required></select></div>
+        <div class="campo campo--largo"><label class="campo__rotulo" for="desl-destino">Destino *</label>
+          <input class="campo__entrada" id="desl-destino" name="destino" required maxlength="160"></div>
+        <div class="campo"><label class="campo__rotulo" for="desl-saida">Data de saída *</label>
+          <input class="campo__entrada" id="desl-saida" name="data_saida" type="date" required></div>
+        <div class="campo"><label class="campo__rotulo" for="desl-retorno">Data de retorno</label>
+          <input class="campo__entrada" id="desl-retorno" name="data_retorno" type="date"></div>
+        <div class="campo"><label class="campo__rotulo" for="desl-finalidade">Finalidade *</label>
+          <select class="campo__entrada" id="desl-finalidade" name="finalidade" required></select></div>
+        <div class="campo"><label class="campo__rotulo" for="desl-status">Situação</label>
+          <select class="campo__entrada" id="desl-status" name="status"></select></div>
+        <div class="campo"><label class="campo__rotulo" for="desl-km-inicial">Km inicial</label>
+          <input class="campo__entrada" id="desl-km-inicial" name="km_inicial" type="number"
+                 data-tipo="numero" step="0.1" inputmode="decimal"
+                 placeholder="Vazio: usa o km do veículo"></div>
+        <div class="campo"><label class="campo__rotulo" for="desl-km-final">Km final</label>
+          <input class="campo__entrada" id="desl-km-final" name="km_final" type="number"
+                 data-tipo="numero" step="0.1" inputmode="decimal"></div>
+        <div class="campo campo--largo"><label class="campo__rotulo" for="desl-obs">Observação</label>
+          <textarea class="campo__entrada" id="desl-obs" name="observacao" rows="2" maxlength="1000"></textarea></div>
+      </div>
+      <div class="formulario__acoes">
+        <button type="button" class="botao" data-fechar>Cancelar</button>
+        <button type="submit" class="botao botao--primario" value="salvar">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Concluir viagem -->
+  <dialog class="dialogo dialogo--estreito" id="dialogo-concluir" aria-labelledby="dialogo-concluir-titulo">
+    <form class="formulario" id="form-concluir" method="dialog" novalidate>
+      <h2 class="dialogo__titulo" id="dialogo-concluir-titulo">Concluir viagem</h2>
+      <p class="dialogo__texto" data-resumo></p>
+      <p class="alerta alerta--erro" data-alerta role="alert" hidden></p>
+      <div class="campo"><label class="campo__rotulo" for="concluir-km">Km final *</label>
+        <input class="campo__entrada" id="concluir-km" name="km_final" type="number" data-tipo="numero"
+               step="0.1" inputmode="decimal" required></div>
+      <div class="campo"><label class="campo__rotulo" for="concluir-data">Data de retorno *</label>
+        <input class="campo__entrada" id="concluir-data" name="data_retorno" type="date" required></div>
+      <div class="formulario__acoes">
+        <button type="button" class="botao" data-fechar>Cancelar</button>
+        <button type="submit" class="botao botao--primario" value="salvar">Concluir</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Confirmação -->
+  <dialog class="dialogo dialogo--estreito" id="dialogo-confirmar" aria-labelledby="dialogo-confirmar-titulo">
+    <form class="formulario" method="dialog">
+      <h2 class="dialogo__titulo" id="dialogo-confirmar-titulo">Confirmar</h2>
+      <p class="dialogo__texto" data-mensagem></p>
+      <div class="formulario__acoes">
+        <button type="submit" class="botao" value="nao">Cancelar</button>
+        <button type="submit" class="botao botao--perigo" value="sim">Excluir</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="avisos" id="avisos" role="status" aria-live="polite"></div>
+
+  <script type="module" src="/static/js/app.js"></script>
 </body>
 </html>

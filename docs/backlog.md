@@ -28,19 +28,19 @@ Estrutura `backend/` `frontend/` `tests/` `scripts/` `docs/`, MVP anterior em `l
 | S1-10 | `seed.py` com dados fictícios, só com banco vazio | — | ✅ |
 | S1-11 | Lint (ruff) e 37 testes novos de API | ADR-009 | ✅ |
 
-## Sprint 2 — Interface ⏳ (próxima)
+## Sprint 2 — Interface ✅
 
-**Objetivo:** páginas responsivas, formulários, tabelas e integração com a API da S1. **Pronta só quando toda rota da S1 tiver tela** (ADR-008).
+**Objetivo:** páginas responsivas, formulários, tabelas e integração com a API da S1. Toda rota da S1 tem tela (ADR-008). Evidências em `execucao.md`.
 
-| ID | Item | Origem |
-|---|---|---|
-| S2-01 | Layout responsivo 320 px → desktop: navegação lateral / barra inferior | RNF03 |
-| S2-02 | Veículos: tabela com busca e filtro, formulário de cadastro/edição, exclusão com confirmação | RF01–03 |
-| S2-03 | Motoristas: tabela, formulário, ativar/desativar, exclusão | RF04 |
-| S2-04 | Deslocamentos: tabela de histórico com filtros, formulário, concluir viagem, excluir | RF05–08 |
-| S2-05 | Exibir `detail` e marcar campos com `erros[]` nos formulários | RNF06 |
-| S2-06 | Acessibilidade mínima: rótulos, foco, contraste, `prefers-reduced-motion` | RNF07 |
-| S2-07 | Verificação no navegador (desktop e 375 px) registrada em `execucao.md` | — |
+| ID | Item | Origem | Situação |
+|---|---|---|---|
+| S2-01 | Layout responsivo 320 px → desktop: navegação lateral / barra inferior | RNF03 | ✅ medido em 375, 800 e 1280 px |
+| S2-02 | Veículos: tabela com busca e filtro, formulário de cadastro/edição, exclusão com confirmação | RF01–03 | ✅ |
+| S2-03 | Motoristas: tabela, formulário, ativar/desativar, exclusão | RF04 | ✅ |
+| S2-04 | Deslocamentos: histórico com 7 filtros, formulário, concluir viagem, excluir | RF05–08 | ✅ |
+| S2-05 | Exibir `detail` e marcar campos com `erros[]` nos formulários | RNF06 | ✅ |
+| S2-06 | Acessibilidade mínima: rótulos, foco, `prefers-reduced-motion` | RNF07 | ✅ por inspeção/teste estático; leitor de tela **NÃO TESTADO** |
+| S2-07 | Verificação no navegador (desktop e 375 px) registrada | — | ✅ (Esc final **NÃO TESTADO**, ver `execucao.md` §5) |
 
 ## Sprint 3 — Dashboard ⏳
 
@@ -68,5 +68,7 @@ Autenticação e perfis · auditoria · exportação CSV/PDF · alertas de CNH e
 | D-03 | Validado só em Python 3.15.1 | Testar em 3.11–3.13 se houver outra máquina |
 | D-04 | Capturas de tela de evidência (Playwright) | Decidir na S2; exige ADR (Node/Playwright) |
 | D-05 | Remover `legado/` ao fim do porte | Ao concluir a S3 |
+| D-08 | Filtros de deslocamentos ocupam a primeira tela em 375 px | Recolher em `<details>` no celular |
+| D-09 | JavaScript sem lint (exigiria Node, ADR-006) | Decidir junto com as capturas de tela (D-04) |
 | D-06 | SQLite reaproveita o id do último registro excluído (sem `AUTOINCREMENT`) | Inofensivo hoje; rever junto com auditoria (pós-MVP) |
 | D-07 | Destino em texto livre gera variações ("Centro" × "Unidade Centro") | Previsto no `CONTEXTO.md`; normalizar no pós-MVP |

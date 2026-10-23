@@ -142,3 +142,76 @@ Ao final, os registros de teste foram removidos e o km do veículo restaurado: t
 - Indicadores/painel (S3) e desempenho com 10 mil deslocamentos (RNF04, S3).
 - Concorrência de escrita (dois usuários ao mesmo tempo): fora do uso monoposto do MVP.
 - Outras versões de Python além da 3.15.1.
+
+---
+
+## Sprint 2 — Interface (páginas, formulários, tabelas, integração com a API) — 2026-10-23
+
+Escopo conforme ADR-008. Frontend em HTML/CSS/JS puro com módulos ES nativos (sem build): `index.html`, `css/styles.css`, `js/{app,api,ui,veiculos,motoristas,deslocamentos}.js`. A API não foi alterada.
+
+### 1. Gate — comandos e resultados
+
+| # | Comando / verificação | Resultado |
+|---|---|---|
+| G1 | `ruff check .` | ✅ `All checks passed!` |
+| G2 | `ruff format --check .` | ✅ `28 files already formatted` |
+| G3 | `pytest -v` | ✅ **47 passed** (41 anteriores + 6 novos do frontend), 0 failed, 1 warning (D-02) |
+| G4 | Banco real intocado pelos testes (`LastWriteTime` antes/depois) | ✅ `banco real alterado pelos testes? False` |
+| G5 | `.\scripts\verificar.ps1` | ✅ `Resumo: lint=0 formato=0 testes=0` |
+| G6 | Aplicação real (uvicorn + SQLite com seed) exercitada no navegador | ✅ ver §2 |
+| G7 | Lint de **JavaScript** | **NÃO TESTADO** — exigiria Node/ESLint (ADR-006). Compensação: T2-07/08/09 (arquivos servidos, imports existem, nomes importados são exportados) + console do navegador sem erros de script |
+
+Testes novos (`tests/backend/test_frontend.py`): T2-07 arquivos do `index.html` são servidos · T2-08 imports dos módulos existem e saem como JavaScript · T2-09 nomes importados existem como exportados · T2-10 sem cor em hex/rgb fora do `:root` · T2-11 navegação cobre as 4 telas · T2-12 todo campo tem `<label for>`.
+
+### 2. Integração frontend ↔ API — observado no navegador real
+
+| Tela | Fluxo | Observado |
+|---|---|---|
+| Veículos | Placa `AB-12` + campos vazios | 422: mensagem no topo + cada campo marcado (`aria-invalid`) com texto em português; foco na placa |
+| | Cadastrar `hml-1a23` | salvo como `HML1A23`; busca `HML` filtra; contagem "1 veículo encontrado" |
+| | Editar (modelo, cor) | API confirma `Modelo Editado`/`Verde`; campos não editados mantidos |
+| | Placa repetida | diálogo fica aberto com "Já existe um veículo com a placa HML1A23. …" |
+| | Excluir: Cancelar / Esc / Excluir | Cancelar e Esc mantêm o registro; Excluir remove (API 404), aviso "Veículo HML1A23 excluído.", tela "0 veículos encontrados" |
+| Motoristas | CNH `123` | "cnh: A CNH deve ter 11 dígitos numéricos." e campo marcado |
+| | Cadastrar (`000.000.008-88`) | CNH salva `00000000888`; lista 4 → 5 |
+| | Editar (desativar, telefone) | API `ativo=false`, selo "Inativo" |
+| | Excluir | API 404; lista volta a 4 |
+| Deslocamentos | Lista inicial | 156 itens; selects mostram a situação ("Em viagem", "Em manutenção"); data de saída padrão = hoje |
+| | Retorno antes da saída | "A data de retorno não pode ser anterior à data de saída." |
+| | Criar; mesmo veículo no período | 201; depois 409 "Conflito de agenda: … deslocamento #157 …" |
+| | Veículo em manutenção | 409 "O veículo TST6006 está em manutenção …" |
+| | Filtro por destino; editar | 1 resultado; observação gravada |
+| | Concluir com km menor | 422 "O km final (22792) não pode ser menor que o km inicial (22802)." |
+| | Concluir com km válido | "Viagem concluída: 87,5 km percorridos."; km do veículo 22802 → **22889,5** |
+| | Filtro de datas invertido | alerta "A data final do filtro não pode ser anterior à data inicial." |
+| | Limpar filtros | volta a listar todos |
+| | Excluir veículo com histórico | 409 "O veículo TST3C03 tem 27 deslocamento(s) … Mude a situação para inativo." |
+| Console | | sem erros de script; só os `Failed to load resource` 409/422 das recusas esperadas da API |
+
+Registros de teste foram removidos e o km do veículo restaurado: totais finais `veículos 6 · motoristas 4 · deslocamentos 156`, 0 resíduos.
+
+### 3. Responsividade (largura real conferida com `innerWidth`)
+
+| Largura | Resultado |
+|---|---|
+| 375 px | ✅ 4 telas sem rolagem horizontal; navegação no rodapé; linhas viram cartões; formulário em tela cheia (375×812) |
+| 800 px | ✅ 4 telas sem rolagem horizontal (após P11) |
+| 1280 px | ✅ 4 telas sem rolagem horizontal; navegação lateral; tabela completa |
+
+### 4. Problemas encontrados e correções
+
+| ID | Problema | Causa | Correção | Situação |
+|---|---|---|---|---|
+| P11 | Página com rolagem horizontal aos 800 px (849–1093 px de largura) | `span.oculto` (texto só para leitor de tela, `position:absolute`) escapava do recorte de `.tabela-rolagem` | `position: relative` em `.tabela-rolagem` | ✅ Corrigido e remedido nas 4 telas |
+| P12 | Primeira medição "375 px" era inválida | `innerWidth` saiu 800: a emulação só vale após recarregar a página | Remedição com `innerWidth` conferido (375 / 800 / 1280) | ✅ |
+| P13 | Mudança de CSS/JS "não pegava" no navegador | cache do navegador | Recarga forçada (`cache: 'reload'`); sem impacto para o usuário final | ✅ Registrado |
+| P14 | Atualização lenta após excluir (~667 ms) | `carregar()` buscava cadastros e histórico em sequência | `Promise.all`; medido **32 ms** depois | ✅ Corrigido |
+| P15 | **Confirmação de exclusão dependia do evento `close` do `<dialog>`**: no navegador de teste (0 quadros/s, janela sem renderizar) o evento só chegava muito depois, e o `DELETE` saiu atrasado ou não saiu | O `close` é entregue junto com a renderização de quadros | `confirmar()` agora resolve no **clique** (Excluir/Cancelar); `close` fica só para o Esc; ouvintes limpos com `AbortController`. Verificado: Cancelar não exclui; Excluir exclui nas 3 telas | ✅ Corrigido |
+
+### 5. O que **não** foi validado na Sprint 2
+
+- **Esc após a mudança do P15**: o caminho do Esc (`close`) foi verificado antes da mudança, mas não pôde ser reexecutado depois, pois o navegador de teste ficou sem renderizar quadros. **NÃO TESTADO** com o código final.
+- **JavaScript sem lint** (G7) e **leitores de tela reais**: acessibilidade conferida só por rótulos, `aria-*` e foco, não com tecnologia assistiva.
+- **Safari/Firefox e celular físico**: só o navegador embutido (Chromium) em largura emulada.
+- Em 375 px os 7 filtros de deslocamentos ocupam a primeira tela, empurrando a lista (limitação de usabilidade; ver README).
+- **Capturas de tela como arquivos**: não geradas nesta sprint.

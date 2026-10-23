@@ -1,27 +1,52 @@
-"use strict";
+// Roteador por #hash: mostra uma tela por vez e pede a ela que recarregue os dados.
 
-// Escapa strings vindas da API antes de inseri-las no HTML.
-function esc(valor) {
-  return String(valor ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
+import { api } from "./api.js";
+import * as deslocamentos from "./deslocamentos.js";
+import * as motoristas from "./motoristas.js";
+import { esc } from "./ui.js";
+import * as veiculos from "./veiculos.js";
+
+const inicio = {
+  iniciar() {},
+  async carregar() {
+    const alvo = document.getElementById("saude-status");
+    try {
+      const dados = await api("/api/saude");
+      alvo.innerHTML = `API: ${esc(dados.status)} · Banco: ${esc(dados.banco)} · versão ${esc(dados.versao)}`;
+      alvo.className = "saude saude--ok";
+    } catch (erro) {
+      alvo.textContent = erro.message;
+      alvo.className = "saude saude--erro";
+    }
+  },
+};
+
+const TELAS = { inicio, veiculos, motoristas, deslocamentos };
+const PADRAO = "inicio";
+
+function telaAtual() {
+  const nome = location.hash.replace("#", "");
+  return nome in TELAS ? nome : PADRAO;
 }
 
-async function verificarSaude() {
-  const alvo = document.getElementById("saude-status");
-  try {
-    const resposta = await fetch("/api/saude");
-    if (!resposta.ok) throw new Error(`HTTP ${resposta.status}`);
-    const dados = await resposta.json();
-    alvo.innerHTML = `API: ${esc(dados.status)} · Banco: ${esc(dados.banco)} · versão ${esc(dados.versao)}`;
-    alvo.classList.add("saude__status--ok");
-  } catch (erro) {
-    alvo.textContent = "Não foi possível falar com a API. Confira se o servidor está rodando.";
-    alvo.classList.add("saude__status--erro");
+async function mostrar() {
+  const nome = telaAtual();
+  for (const secao of document.querySelectorAll(".tela")) {
+    secao.hidden = secao.id !== `tela-${nome}`;
   }
+  for (const link of document.querySelectorAll(".navegacao__link")) {
+    if (link.dataset.tela === nome) link.setAttribute("aria-current", "page");
+    else link.removeAttribute("aria-current");
+  }
+  const secao = document.getElementById(`tela-${nome}`);
+  document.title = `${secao.dataset.titulo} — Rodagem`;
+  await TELAS[nome].carregar();
 }
 
-verificarSaude();
+for (const tela of Object.values(TELAS)) tela.iniciar();
+
+window.addEventListener("hashchange", () => {
+  mostrar();
+  document.getElementById("conteudo").focus({ preventScroll: true });
+});
+mostrar();

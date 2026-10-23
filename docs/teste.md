@@ -79,16 +79,25 @@ Arquivos: `tests/backend/test_veiculos.py`, `test_motoristas.py`, `test_deslocam
 | T1-33 | Trava de conexão ativa | listener registrado no engine real |
 | T1-M | Roteiro HTTP no servidor real + reinício | ver `execucao.md` (manual, reproduzível) |
 
-### Sprint 2 — interface (planejado)
+### Sprint 2 — interface ✅
 
-| ID | Caso | Esperado |
-|---|---|---|
-| T2-01 | Cada tela carrega dados reais da API | tabelas preenchidas com o seed |
-| T2-02 | Criar, editar e excluir veículo, motorista e deslocamento pela tela | refletido na API e após recarregar |
-| T2-03 | Erros 409/422 aparecem no formulário | mensagem `detail`, campo marcado |
-| T2-04 | Concluir viagem pela tela | km do veículo atualizado |
-| T2-05 | Largura 375 px e desktop | sem rolagem horizontal; navegação adequada |
-| T2-06 | Teclado e leitores | foco visível, rótulos associados |
+Automatizados em `tests/backend/test_frontend.py`; os demais, manuais no navegador (registrados em `execucao.md`).
+
+| ID | Caso | Tipo | Esperado |
+|---|---|---|---|
+| T2-01 | Cada tela carrega dados reais da API | manual | tabelas preenchidas com o seed (6 / 4 / 156) |
+| T2-02 | Criar, editar e excluir veículo, motorista e deslocamento pela tela | manual | refletido na API e na tabela |
+| T2-03 | Erros 409/422 aparecem no formulário | manual | `detail` no topo, campo marcado |
+| T2-04 | Concluir viagem pela tela | manual | km do veículo atualizado (22802 → 22889,5) |
+| T2-05 | 375 px, 800 px e 1280 px | manual | sem rolagem horizontal; navegação adequada |
+| T2-06 | Teclado e rótulos | manual + T2-12 | foco visível, todo campo com `<label for>` |
+| T2-07 | Arquivos do `index.html` servidos | auto | 200 |
+| T2-08 | Imports dos módulos JS | auto | arquivos existem; `Content-Type` JavaScript |
+| T2-09 | Nomes importados são exportados | auto | nenhum import quebrado |
+| T2-10 | Cores só nas variáveis do `:root` | auto | sem hex/rgb fora do `:root` |
+| T2-11 | Navegação cobre as 4 telas | auto | links e seções presentes |
+| T2-12 | Rótulos associados | auto | nenhum campo sem `<label for>` |
+| T2-13 | Cancelar e Esc na confirmação | manual | não excluem (Esc: **NÃO TESTADO** após P15) |
 
 ### Sprint 3 — dashboard (planejado)
 

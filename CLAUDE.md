@@ -21,8 +21,8 @@ Sprints redefinidas pela ADR-008: S1 API + persistência · S2 interface · S3 d
 
 - **S0 ✅** esqueleto, docs, git.
 - **S1 ✅** Veículo, Motorista, Deslocamento: CRUD, regras 1–8, histórico com filtros, seed fictício, 41 testes.
-- **S2 ⏳ (próxima)** telas responsivas consumindo a API da S1. Só está pronta quando toda rota da S1 tiver tela.
-- **S3 ⏳** dashboard calculado.
+- **S2 ✅** telas responsivas (veículos, motoristas, deslocamentos) consumindo a API; 47 testes.
+- **S3 ⏳ (próxima)** dashboard calculado.
 
 Gate de cada sprint (não avance se falhar): `.\scripts\verificar.ps1` (ruff + pytest) + aplicação real com SQLite em arquivo + registro em `docs/execucao.md`.
 
@@ -59,7 +59,7 @@ Banco: `backend/data/gestao_veiculos.db` (não versionado). Ao alterar um modelo
 | `backend/app/erros.py` | 422 em português: `{detail, erros: [{campo, mensagem}]}` |
 | `backend/app/routers/` | `veiculos`, `motoristas`, `deslocamentos` — regras que consultam o banco |
 | `backend/app/seed.py` | Dados fictícios de demonstração |
-| `frontend/` | `index.html`, `css/styles.css`, `js/app.js` (telas de CRUD: S2) |
+| `frontend/` | `index.html`, `css/styles.css`, `js/`: `app.js` (rotas por #hash), `api.js` (fetch + `ErroApi`), `ui.js` (`esc()`, formulários, `confirmar()`), uma tela por arquivo |
 | `tests/conftest.py` | Fixture `client` com SQLite em memória + trava que reprova acesso ao banco real |
 | `tests/backend/` | Testes de API e critérios de aceite |
 | `scripts/` | Scripts PowerShell (sem acentos: PS 5.1 lê `.ps1` como ANSI) |
@@ -69,7 +69,7 @@ Banco: `backend/data/gestao_veiculos.db` (não versionado). Ao alterar um modelo
 - **Idioma:** domínio, rotas, variáveis, mensagens e comentários em português. Não renomeie campos para inglês. Interface sempre em português.
 - **Camadas:** formato/coerência em `schemas.py`; regra que consulta o banco no router; nenhuma regra de negócio no frontend.
 - **Erros HTTP:** `422` formato · `404` inexistente · `409` conflito de regra. Mensagem diz o que houve e como resolver, sem jargão.
-- **Frontend:** sem dependências novas; toda string da API passa por `esc()`; CSS `.bloco__elemento` e `.bloco--variante`; cores só por variáveis de `:root`.
+- **Frontend:** no navegador de teste o evento `close` de `<dialog>` não chega sem renderização de quadros; não dependa dele para ações (use o clique). Sem dependências novas; toda string da API passa por `esc()`; CSS `.bloco__elemento` e `.bloco--variante`; cores só por variáveis de `:root`.
 - **Banco:** sem migrações no MVP (`create_all`; Alembic é pós-MVP). `create_all` não altera tabela existente: ao mudar um modelo, avise a usuária antes de recriar o banco.
 - **Lint:** `ruff check .` e `ruff format .` (config em `ruff.toml`); o gate exige os dois limpos.
 - **Testes:** toda nova regra ganha teste com o ID de `docs/teste.md` no nome; nunca tocar o banco real.
