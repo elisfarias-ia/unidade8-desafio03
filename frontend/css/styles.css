@@ -190,26 +190,135 @@ body {
   color: var(--cor-erro);
 }
 
-.atalhos {
+/* ---------- Painel ---------- */
+.filtros--periodo {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.filtros--periodo .filtros__acoes {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.indicadores {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 12px;
+  margin-bottom: 12px;
+}
+
+.indicadores--secundarios {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
   margin-bottom: 16px;
 }
 
-.atalhos__item {
-  display: block;
+.indicador {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   padding: 16px;
   background: var(--cor-superficie);
   border: 1px solid var(--cor-borda);
   border-radius: var(--raio);
-  color: var(--cor-primaria);
-  font-weight: 600;
-  text-decoration: none;
 }
 
-.atalhos__item:hover {
-  border-color: var(--cor-primaria);
+.indicador__rotulo {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--cor-texto-suave);
+}
+
+.indicador__valor {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.indicador--pequeno .indicador__valor {
+  font-size: 1.45rem;
+}
+
+.indicador__detalhe {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--cor-texto-suave);
+}
+
+.proporcao {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--cor-info-fundo);
+}
+
+.proporcao__parte {
+  display: block;
+  height: 100%;
+}
+
+.proporcao__parte--realizada {
+  background: var(--cor-ok);
+}
+
+.graficos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 12px;
+}
+
+.grafico {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.grafico__linha {
+  display: grid;
+  grid-template-columns: minmax(80px, 38%) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 0.9rem;
+}
+
+.grafico__rotulo {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grafico__trilho {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--cor-neutro-fundo);
+  overflow: hidden;
+}
+
+.grafico__barra {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--cor-primaria);
+}
+
+.grafico__valor {
+  min-width: 2ch;
+  text-align: right;
+  font-weight: 600;
+}
+
+.grafico__vazio {
+  color: var(--cor-texto-suave);
+}
+
+.estado-vazio {
+  margin: 0 0 16px;
+  padding: 16px;
+  background: var(--cor-alerta-fundo);
+  color: var(--cor-alerta);
+  border-radius: var(--raio);
 }
 
 /* ---------- Botões ---------- */

@@ -63,7 +63,7 @@ Janela padrão: 90 dias de histórico + 30 dias de agenda futura, ajustável.
 | RNF01 | Backend e frontend com um único comando, sem build | Atendido (`scripts\iniciar.ps1`) |
 | RNF02 | SQLite local com `PRAGMA foreign_keys=ON` | Configurado em `backend/app/database.py` |
 | RNF03 | Responsivo de 320 px ao desktop | Pendente (S2) |
-| RNF04 | API ≤ 500 ms com até 10 mil deslocamentos | Pendente (medir na S3) |
+| RNF04 | API ≤ 500 ms com até 10 mil deslocamentos | Atendido em memória (indicadores: 22 ms de mediana); arquivo e HTTP reais não medidos |
 | RNF05 | OpenAPI em `/docs` | Atendido |
 | RNF06 | Mensagens de erro em português, específicas | Atendido na API (S1); exibição na S2 |
 | RNF07 | Acessibilidade mínima (foco, rótulos, contraste, reduced-motion) | Parcial (foco visível) |

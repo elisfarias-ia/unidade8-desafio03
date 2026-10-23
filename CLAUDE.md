@@ -22,7 +22,8 @@ Sprints redefinidas pela ADR-008: S1 API + persistência · S2 interface · S3 d
 - **S0 ✅** esqueleto, docs, git.
 - **S1 ✅** Veículo, Motorista, Deslocamento: CRUD, regras 1–8, histórico com filtros, seed fictício, 41 testes.
 - **S2 ✅** telas responsivas (veículos, motoristas, deslocamentos) consumindo a API; 47 testes.
-- **S3 ⏳ (próxima)** dashboard calculado.
+- **S3 ✅** painel calculado por consulta (ADR-010): `dashboard.py`, tela `painel.js`; 57 testes + mutação das fórmulas.
+- **S4 ⏳ (próxima)** homologação ponta a ponta com evidências (capturas de tela); ver ADR da S4.
 
 Gate de cada sprint (não avance se falhar): `.\scripts\verificar.ps1` (ruff + pytest) + aplicação real com SQLite em arquivo + registro em `docs/execucao.md`.
 
@@ -57,9 +58,9 @@ Banco: `backend/data/gestao_veiculos.db` (não versionado). Ao alterar um modelo
 | `backend/app/models.py` | `Veiculo`, `Motorista`, `Deslocamento` e enums |
 | `backend/app/schemas.py` | Contratos, normalização (placa, CNH) e coerência (datas, km) |
 | `backend/app/erros.py` | 422 em português: `{detail, erros: [{campo, mensagem}]}` |
-| `backend/app/routers/` | `veiculos`, `motoristas`, `deslocamentos` — regras que consultam o banco |
+| `backend/app/routers/` | `veiculos`, `motoristas`, `deslocamentos`, `dashboard` — regras e consultas |
 | `backend/app/seed.py` | Dados fictícios de demonstração |
-| `frontend/` | `index.html`, `css/styles.css`, `js/`: `app.js` (rotas por #hash), `api.js` (fetch + `ErroApi`), `ui.js` (`esc()`, formulários, `confirmar()`), uma tela por arquivo |
+| `frontend/` | `index.html`, `css/styles.css`, `js/`: `app.js` (rotas por #hash), `painel.js` (indicadores), `api.js` (fetch + `ErroApi`), `ui.js` (`esc()`, formulários, `confirmar()`), uma tela por arquivo |
 | `tests/conftest.py` | Fixture `client` com SQLite em memória + trava que reprova acesso ao banco real |
 | `tests/backend/` | Testes de API e critérios de aceite |
 | `scripts/` | Scripts PowerShell (sem acentos: PS 5.1 lê `.ps1` como ANSI) |

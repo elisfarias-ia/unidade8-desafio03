@@ -89,13 +89,30 @@ def _checar_conflito_agenda(
             )
 
 
-def _sincronizar_veiculo(veiculo: Veiculo, d: Deslocamento) -> None:
+def _ha_outra_viagem_em_andamento(db: Session, veiculo_id: int, ignorar_id: int | None) -> bool:
+    q = db.query(Deslocamento.id).filter(
+        Deslocamento.veiculo_id == veiculo_id,
+        Deslocamento.status == StatusDeslocamento.em_andamento,
+    )
+    if ignorar_id is not None:
+        q = q.filter(Deslocamento.id != ignorar_id)
+    return q.first() is not None
+
+
+def _liberar_se_ocioso(db: Session, veiculo: Veiculo, ignorar_id: int | None) -> None:
+    """O veículo só volta a 'disponível' quando não resta nenhuma viagem em andamento."""
+    if veiculo.status == StatusVeiculo.em_viagem and not _ha_outra_viagem_em_andamento(
+        db, veiculo.id, ignorar_id
+    ):
+        veiculo.status = StatusVeiculo.disponivel
+
+
+def _sincronizar_veiculo(db: Session, veiculo: Veiculo, d: Deslocamento) -> None:
     """Regra 8: viagem em andamento ocupa o veículo; ao terminar, ele volta e o km avança."""
     if d.status == StatusDeslocamento.em_andamento:
         veiculo.status = StatusVeiculo.em_viagem
         return
-    if veiculo.status == StatusVeiculo.em_viagem:
-        veiculo.status = StatusVeiculo.disponivel
+    _liberar_se_ocioso(db, veiculo, d.id)
     if d.status == StatusDeslocamento.realizado and d.km_final is not None:
         veiculo.km_atual = max(veiculo.km_atual or 0, d.km_final)
 
@@ -120,7 +137,7 @@ def registrar_deslocamento(dados: DeslocamentoCreate, db: Session = Depends(get_
 
     d = Deslocamento(**payload)
     db.add(d)
-    _sincronizar_veiculo(veiculo, d)
+    _sincronizar_veiculo(db, veiculo, d)
     db.commit()
     db.refresh(d)
     return d
@@ -196,9 +213,9 @@ def atualizar_deslocamento(
 
     db.flush()
     db.refresh(d, ["veiculo"])
-    if veiculo_anterior.id != d.veiculo_id and veiculo_anterior.status == StatusVeiculo.em_viagem:
-        veiculo_anterior.status = StatusVeiculo.disponivel
-    _sincronizar_veiculo(d.veiculo, d)
+    if veiculo_anterior.id != d.veiculo_id:
+        _liberar_se_ocioso(db, veiculo_anterior, d.id)
+    _sincronizar_veiculo(db, d.veiculo, d)
     db.commit()
     db.refresh(d)
     return d
@@ -234,7 +251,7 @@ def concluir_deslocamento(
     d.km_final = dados.km_final
     d.data_retorno = data_retorno
     d.status = StatusDeslocamento.realizado
-    _sincronizar_veiculo(d.veiculo, d)
+    _sincronizar_veiculo(db, d.veiculo, d)
     db.commit()
     db.refresh(d)
     return d
@@ -244,7 +261,7 @@ def concluir_deslocamento(
 def excluir_deslocamento(deslocamento_id: int, db: Session = Depends(get_db)):
     d = _buscar(db, deslocamento_id)
     veiculo = d.veiculo
-    if d.status == StatusDeslocamento.em_andamento and veiculo.status == StatusVeiculo.em_viagem:
-        veiculo.status = StatusVeiculo.disponivel
+    if d.status == StatusDeslocamento.em_andamento:
+        _liberar_se_ocioso(db, veiculo, d.id)
     db.delete(d)
     db.commit()

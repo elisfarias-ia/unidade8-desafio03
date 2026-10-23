@@ -42,18 +42,18 @@ Estrutura `backend/` `frontend/` `tests/` `scripts/` `docs/`, MVP anterior em `l
 | S2-06 | Acessibilidade mínima: rótulos, foco, `prefers-reduced-motion` | RNF07 | ✅ por inspeção/teste estático; leitor de tela **NÃO TESTADO** |
 | S2-07 | Verificação no navegador (desktop e 375 px) registrada | — | ✅ (Esc final **NÃO TESTADO**, ver `execucao.md` §5) |
 
-## Sprint 3 — Dashboard ⏳
+## Sprint 3 — Dashboard ✅
 
-**Objetivo:** painel calculado a partir dos dados persistidos. **Aceite:** CA03.
+**Objetivo:** painel calculado a partir dos dados persistidos. **Aceite:** CA03. Definições em ADR-010.
 
-| ID | Item | Origem |
-|---|---|---|
-| S3-01 | `GET /api/dashboard/indicadores?data_inicio&data_fim` (sempre por consulta) | RF09, regra 9 |
-| S3-02 | Totais de veículos (disponíveis/em viagem), deslocamentos, previstas e realizadas | RF09 |
-| S3-03 | Taxa de realização, km total, média por viagem, utilização da frota | RF09 |
-| S3-04 | Por finalidade, top 5 destinos, série mensal | RF09 |
-| S3-05 | Tela do painel com período ajustável e próximas saídas | RF09, RF13 |
-| S3-06 | Testes CA03 com base conhecida + medição RNF04 (10 mil deslocamentos) | CA03, RNF04 |
+| ID | Item | Origem | Situação |
+|---|---|---|---|
+| S3-01 | `GET /api/dashboard/indicadores?data_inicio&data_fim` (sempre por consulta; período invertido → 422) | RF09, regra 9 | ✅ |
+| S3-02 | Veículos (por situação), deslocamentos, previstas, em andamento, realizadas, canceladas | RF09 | ✅ |
+| S3-03 | Taxa de realização, km total, média por viagem, utilização da frota | RF09 | ✅ |
+| S3-04 | Por finalidade, top 5 destinos, série mensal | RF09 | ✅ |
+| S3-05 | Tela **Painel** (nova página inicial): período ajustável, estado vazio, próximas saídas | RF09, RF13 | ✅ |
+| S3-06 | Testes CA03 com base conhecida + mutação + desempenho com 10 mil (RNF04) | CA03, RNF04 | ✅ |
 
 ## Pós-MVP ⛔
 
@@ -69,6 +69,7 @@ Autenticação e perfis · auditoria · exportação CSV/PDF · alertas de CNH e
 | D-04 | Capturas de tela de evidência (Playwright) | Decidir na S2; exige ADR (Node/Playwright) |
 | D-05 | Remover `legado/` ao fim do porte | Ao concluir a S3 |
 | D-08 | Filtros de deslocamentos ocupam a primeira tela em 375 px | Recolher em `<details>` no celular |
+| D-10 | Modelos de saída herdam as regras de entrada: registro fora das regras (inserido por fora da API) faz a listagem devolver 500 | Separar `*Out` de `*Base`, sem validações |
 | D-09 | JavaScript sem lint (exigiria Node, ADR-006) | Decidir junto com as capturas de tela (D-04) |
 | D-06 | SQLite reaproveita o id do último registro excluído (sem `AUTOINCREMENT`) | Inofensivo hoje; rever junto com auditoria (pós-MVP) |
 | D-07 | Destino em texto livre gera variações ("Centro" × "Unidade Centro") | Previsto no `CONTEXTO.md`; normalizar no pós-MVP |

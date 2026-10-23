@@ -250,3 +250,37 @@ class DeslocamentoOut(DeslocamentoBase):
     km_percorrido: float | None = None
     veiculo: ResumoVeiculo
     motorista: ResumoMotorista
+
+
+# --------------------------------------------------------------------------- #
+# Painel (S3) — definições dos indicadores em docs/Arquitetura.md (ADR-010)
+# --------------------------------------------------------------------------- #
+class ItemContagem(BaseModel):
+    rotulo: str
+    valor: int
+
+
+class Indicadores(BaseModel):
+    periodo_inicio: date
+    periodo_fim: date
+    # Veículos (situação atual; não depende do período)
+    total_veiculos: int
+    veiculos_disponiveis: int
+    veiculos_em_viagem: int
+    veiculos_manutencao: int
+    veiculos_inativos: int
+    # Deslocamentos no período: total = previstas + em andamento + realizadas + canceladas
+    total_deslocamentos: int
+    viagens_previstas: int
+    viagens_em_andamento: int
+    viagens_realizadas: int
+    viagens_canceladas: int
+    # Calculados
+    taxa_realizacao: float
+    km_total_percorrido: float
+    media_km_por_viagem: float
+    taxa_utilizacao_frota: float
+    # Quebras
+    deslocamentos_por_finalidade: list[ItemContagem]
+    top_destinos: list[ItemContagem]
+    serie_mensal: list[ItemContagem]

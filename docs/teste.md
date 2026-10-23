@@ -99,14 +99,23 @@ Automatizados em `tests/backend/test_frontend.py`; os demais, manuais no navegad
 | T2-12 | Rótulos associados | auto | nenhum campo sem `<label for>` |
 | T2-13 | Cancelar e Esc na confirmação | manual | não excluem (Esc: **NÃO TESTADO** após P15) |
 
-### Sprint 3 — dashboard (planejado)
+### Sprint 3 — dashboard ✅
+
+Arquivo: `tests/backend/test_dashboard.py` (base conhecida com 5 veículos e 9 deslocamentos, valores calculados à mão).
 
 | ID | Caso | Esperado |
 |---|---|---|
-| CA03-a | Indicadores com base conhecida | totais e taxas iguais ao cálculo manual |
-| CA03-b | Mudar período | tudo recalculado só com `data_saida` no intervalo |
-| T3-01 | Base vazia | zeros, sem divisão por zero |
-| T3-02 | 10 mil deslocamentos | resposta ≤ 500 ms (RNF04) |
+| CA03-a | Indicadores com base conhecida (março/2030) | 5 veículos (2/1/1/1); 7 deslocamentos = 2+1+3+1; taxa 60,0%; 150 km; média 75,0; utilização 40,0% |
+| CA03-b | Mudar o período (tudo; fevereiro; sem dados) | recalcula: 9; 57,1%; 450 km; 150,0 · fev: 1; 100%; 300 km; 20% · vazio: 0 |
+| T3-01 | Base vazia / só veículos | todos os numéricos 0, sem divisão por zero; quebras vazias |
+| T3-02 | Criar, concluir, cancelar, excluir e cadastrar veículo | os indicadores acompanham cada passo |
+| T3-03 | Período invertido / data inválida | 422 em português |
+| T3-04 | Período padrão | hoje−90 até hoje+30 |
+| T3-05 | Próximas saídas | só `previsto`, de hoje em diante, em ordem; `limite` validado |
+| T3-06 | 10 mil deslocamentos | resposta < 500 ms (RNF04) |
+| T3-M | Mutação: 6 alterações deliberadas nas fórmulas | todas detectadas (manual, ver `execucao.md`) |
+| T3-X | Números da tela × SQL direto no SQLite | idênticos (manual, ver `execucao.md`) |
+| T1-34 | Regressão: veículo em viagem não é liberado por outra viagem | permanece `em_viagem` até a última concluir |
 
 ## 4. Resultados
 

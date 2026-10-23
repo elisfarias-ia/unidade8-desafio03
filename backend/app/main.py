@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.database import criar_tabelas, get_db
 from app.erros import tratar_erro_validacao
-from app.routers import deslocamentos, motoristas, veiculos
+from app.routers import dashboard, deslocamentos, motoristas, veiculos
 
 FRONTEND_DIR = Path(__file__).resolve().parents[2] / "frontend"
 
@@ -28,7 +28,7 @@ app = FastAPI(
     title="Rodagem — Gestão de Veículos e Deslocamentos",
     description=(
         "API de controle de frota: cadastro de veículos e motoristas, "
-        "registro de deslocamentos e consulta de histórico."
+        "registro de deslocamentos, consulta de histórico e indicadores."
     ),
     version="0.1.0",
 )
@@ -37,6 +37,7 @@ app.add_exception_handler(RequestValidationError, tratar_erro_validacao)
 app.include_router(veiculos.router)
 app.include_router(motoristas.router)
 app.include_router(deslocamentos.router)
+app.include_router(dashboard.router)
 
 
 @app.get("/api/saude", tags=["Infra"])

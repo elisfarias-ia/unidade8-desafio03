@@ -25,6 +25,7 @@ def test_t2_08_imports_dos_modulos_existem_e_saem_como_javascript(client):
         "app.js",
         "api.js",
         "ui.js",
+        "painel.js",
         "veiculos.js",
         "motoristas.js",
         "deslocamentos.js",
@@ -62,7 +63,7 @@ def test_t2_10_cores_so_nas_variaveis_do_root():
 def test_t2_11_navegacao_cobre_todas_as_telas():
     html = (FRONTEND_DIR / "index.html").read_text(encoding="utf-8")
     assert 'lang="pt-BR"' in html
-    for tela in ("inicio", "veiculos", "motoristas", "deslocamentos"):
+    for tela in ("painel", "veiculos", "motoristas", "deslocamentos"):
         assert f'href="#{tela}"' in html
         assert f'id="tela-{tela}"' in html
 

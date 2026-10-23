@@ -122,3 +122,15 @@ Formato: contexto → decisão → consequência. Status: **Aceita** salvo indic
 - **Contexto:** o gate de cada sprint pede lint, e o projeto não tinha nenhum.
 - **Decisão:** adicionar `ruff` (wheel única, sem dependências, instala no Python 3.15) a `backend/requirements.txt`, configurado em `ruff.toml` na raiz, excluindo `legado/`.
 - **Alternativa descartada:** flake8 + plugins (mais pacotes para o mesmo resultado). JavaScript continua sem lint, pois exigiria Node (ADR-006).
+
+### ADR-010 — Definição dos indicadores do painel (S3)
+- **Contexto:** o painel da S3 deve mostrar veículos, deslocamentos e viagens previstas × realizadas, calculados a partir dos dados persistidos. O `CONTEXTO.md` §2.2 dá as fórmulas, mas deixa pontos em aberto, e o dashboard do `legado/` os resolvia de forma inconsistente (soma de km de qualquer situação, período invertido trocado em silêncio, canceladas na utilização, sem as situações "em andamento" e "canceladas").
+- **Decisão:** os **3 indicadores principais** são **Veículos**, **Deslocamentos** e **Viagens (previstas × realizadas)**. Definições (todas por consulta, nada armazenado, regra 9):
+  - **Período** filtra por `data_saida`. Padrão: 90 dias atrás a 30 dias à frente. `data_fim < data_inicio` → **422** (não se troca em silêncio).
+  - **Veículos:** total cadastrado e quebra por situação atual (disponível, em viagem, manutenção, inativo). Não depende do período.
+  - **Deslocamentos no período:** todas as situações. `total = previstas + em andamento + realizadas + canceladas`. Por finalidade, destinos (top 5) e série mensal também contam todas as situações, então a soma de cada quebra é igual ao total.
+  - **Taxa de realização** = realizadas ÷ (previstas + realizadas) × 100 (em andamento e canceladas ficam fora); 0 quando o denominador é 0.
+  - **Km percorrido** = soma de `km_final − km_inicial` **só de viagens realizadas** com os dois km preenchidos. **Média por viagem** = km total ÷ viagens realizadas **com km informado**.
+  - **Utilização da frota** = veículos distintos com ao menos um deslocamento **não cancelado** no período ÷ total de veículos × 100.
+  - **Próximas saídas (RF13):** `previsto` com `data_saida >= hoje`, da mais próxima para a mais distante (padrão 5).
+- **Consequência:** base vazia retorna zeros, sem divisão por zero. As definições valem para os testes CA03 e para a homologação (S4).

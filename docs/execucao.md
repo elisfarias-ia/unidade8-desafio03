@@ -215,3 +215,63 @@ Registros de teste foram removidos e o km do veículo restaurado: totais finais 
 - **Safari/Firefox e celular físico**: só o navegador embutido (Chromium) em largura emulada.
 - Em 375 px os 7 filtros de deslocamentos ocupam a primeira tela, empurrando a lista (limitação de usabilidade; ver README).
 - **Capturas de tela como arquivos**: não geradas nesta sprint.
+
+---
+
+## Sprint 3 — Painel de indicadores — 2026-10-23
+
+Definições dos indicadores em **ADR-010**. API: `GET /api/dashboard/indicadores` e `GET /api/dashboard/proximas-saidas`. Tela: **Painel** (nova página inicial, `frontend/js/painel.js`). Os 3 indicadores principais: **Veículos**, **Deslocamentos** e **Viagens previstas × realizadas**, mais taxa de realização, km total, média por viagem e utilização da frota.
+
+### 1. Gate — comandos e resultados
+
+| # | Comando / verificação | Resultado |
+|---|---|---|
+| G1 | `ruff check .` / `ruff format --check .` | ✅ `All checks passed!` / `30 files already formatted` |
+| G2 | `pytest -v` | ✅ **57 passed** (48 anteriores + 9 do painel), 0 failed, 1 warning (D-02) |
+| G3 | Banco real intocado pelos testes | ✅ `banco real alterado pelos testes? False` |
+| G4 | `.\scripts\verificar.ps1` | ✅ `Resumo: lint=0 formato=0 testes=0` |
+| G5 | **Teste de mutação** das fórmulas (6 alterações deliberadas no `dashboard.py`) | 1ª rodada: ❌ 2 de 6 mutantes **sobreviveram** → base de testes reforçada (P17) → ✅ **6 de 6 detectados**; código restaurado |
+| G6 | **Conferência independente**: números da tela × SQL direto no arquivo SQLite (sem usar a API) | ✅ idênticos: veículos 6 (4/1/1/0) · deslocamentos 156 (30/1/119/6) · taxa 79,9% · 24.967 km · média 209,8 km · utilização 100% · 3 quebras (finalidade, destinos, meses) · 5 próximas saídas |
+| G7 | Painel no navegador: período vazio / inválido / padrão / recorte | ✅ período 2031: tudo zero + aviso "Nenhum deslocamento…" · período invertido: alerta em português e painel oculto · "Período padrão" restaura · outubro/2026 = 41 (igual ao SQL) |
+| G8 | Painel acompanha mudanças (período livre de 2035, status de cada chamada conferido) | ✅ ver §2 |
+| G9 | Responsividade do painel | ✅ 375 px (sem rolagem horizontal) · ✅ 1280 px (3 colunas, sem rolagem horizontal). 800 px **não medido** para o painel |
+| G10 | Lint de JavaScript | **NÃO TESTADO** (sem Node, ADR-006); cobertura parcial por T2-07/08/09 |
+
+### 2. Painel acompanha as mudanças (navegador real)
+
+Período 2035 (vazio no seed). `POST`×2 → 201/201, concluir → 200, `DELETE`×2 → 204/204.
+
+| Momento | Deslocamentos | Previstas × Realizadas | Em andamento | Km / média / taxa / utilização | Veículos |
+|---|---|---|---|---|---|
+| Início | 0 | 0 × 0 | 0 | 0 / 0 / 0% / 0% | 4 disp · 1 em viagem |
+| Após criar (1 em andamento + 1 prevista) | 2 | 1 × 0 | 1 | 0 / 0 / 0% / 16,7% | 3 disp · **2 em viagem** |
+| Após concluir (125 km) | 2 | 1 × **1** | 0 | **125 km / 125 km / 50%** / 16,7% | 4 disp · 1 em viagem |
+| Após excluir os dois | 0 | 0 × 0 | 0 | 0 / 0 / 0% / 0% | 4 disp · 1 em viagem |
+
+### 3. Desempenho (RNF04: ≤ 500 ms com 10 mil deslocamentos)
+
+Medido com 10 000 deslocamentos em SQLite em memória, 15 chamadas por rota (TestClient, sem rede):
+
+| Rota | Mediana | Máximo |
+|---|---|---|
+| `/api/dashboard/indicadores` (1 ano) | 22,0 ms | 56,1 ms |
+| `/api/dashboard/proximas-saidas` | 5,3 ms | 10,8 ms |
+| `/api/deslocamentos?limite=200` | 8,2 ms | 11,0 ms |
+
+Ressalva: sem latência de rede e em memória; em arquivo e via HTTP real os números serão maiores. T3-06 reprova acima de 500 ms.
+
+### 4. Problemas encontrados e correções
+
+| ID | Problema | Causa | Correção | Situação |
+|---|---|---|---|---|
+| P16 | **Defeito da S1 achado ao planejar os testes do painel:** registrar uma viagem *prevista* (ou cancelada) para um veículo que já está em viagem o devolvia a "disponível"; concluir uma de duas viagens em andamento também | `_sincronizar_veiculo` liberava o veículo sem checar se restava outra viagem em andamento | `_liberar_se_ocioso`: só libera quando não resta viagem em andamento; vale para criar, editar (troca de veículo), concluir e excluir. Regressão **T1-34** (reproduzida falhando antes da correção) | ✅ Corrigido |
+| P17 | Mutantes M2 (utilização contando canceladas) e M3 (km de qualquer situação) **passavam** nos testes | A base de teste não tinha viagem cancelada num veículo só dela, nem km em viagem não realizada | 5º veículo só com uma viagem cancelada **com km**; valores esperados recalculados | ✅ 6/6 mutantes detectados |
+| P18 | Erros do próprio teste: T1-34 concluía sem `data_retorno` (assume hoje, anterior à saída → 422); T3-02 reutilizava a placa do V5 (409) | Falha minha ao escrever os testes | Corrigidos nos testes; nenhuma mudança no código | ✅ |
+| P19 | 1ª verificação de "painel acompanha mudanças" não mudou nada | `POST` no veículo do seed caía em conflito de agenda (409) e eu não conferia o status | Refeito em período livre (2035) conferindo cada status (§2) | ✅ Método corrigido |
+| D-10 | Listar veículos devolve **500** se existir um registro que viole as regras de *entrada* (ex.: marca de 1 caractere) | Os modelos de saída (`VeiculoOut` etc.) herdam as validações dos modelos de entrada | **Não corrigido.** Não ocorre pela API (entrada validada) nem pelo seed; risco só com dados inseridos por fora ou regras endurecidas depois. Registrado no backlog | ⏳ Aberto |
+
+### 5. O que **não** foi validado na Sprint 3
+
+- **JavaScript sem lint** (G10) e leitor de tela; painel **não medido** a 800 px.
+- **Desempenho com arquivo SQLite e HTTP real** (só em memória, sem rede).
+- Console do navegador: contém `404/409/422` das minhas sondagens a registros excluídos e das recusas esperadas; a ausência de 404 em recursos estáticos será checada na S4.

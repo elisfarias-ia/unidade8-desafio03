@@ -203,3 +203,35 @@ def test_t1_31_excluir_em_andamento_devolve_veiculo(client, base):
     criado = registrar(client, base, status="em_andamento").json()
     client.delete(f"/api/deslocamentos/{criado['id']}")
     assert client.get(f"/api/veiculos/{base['veiculo_id']}").json()["status"] == "disponivel"
+
+
+def test_t1_34_veiculo_em_viagem_nao_e_liberado_por_outra_viagem(client, base):
+    """Regressão (achada na S3): só libera o veículo quando não resta viagem em andamento."""
+    veiculo_url = f"/api/veiculos/{base['veiculo_id']}"
+    primeira = registrar(client, base, status="em_andamento").json()
+    assert client.get(veiculo_url).json()["status"] == "em_viagem"
+
+    # registrar uma viagem futura para o mesmo veículo não pode libertá-lo
+    registrar(client, base, data_saida="2030-04-01", data_retorno="2030-04-02")
+    assert client.get(veiculo_url).json()["status"] == "em_viagem"
+
+    # um cancelado registrado depois também não
+    registrar(client, base, status="cancelado", data_saida="2030-05-01", data_retorno=None)
+    assert client.get(veiculo_url).json()["status"] == "em_viagem"
+
+    # duas em andamento: concluir uma mantém o veículo em viagem; a última o libera
+    segunda = registrar(
+        client, base, status="em_andamento", data_saida="2030-06-01", data_retorno="2030-06-02"
+    ).json()
+    concluida = client.post(
+        f"/api/deslocamentos/{primeira['id']}/concluir",
+        json={"km_final": 1100, "data_retorno": "2030-03-12"},
+    )
+    assert concluida.status_code == 200
+    assert client.get(veiculo_url).json()["status"] == "em_viagem"
+    concluida = client.post(
+        f"/api/deslocamentos/{segunda['id']}/concluir",
+        json={"km_final": 1200, "data_retorno": "2030-06-02"},
+    )
+    assert concluida.status_code == 200
+    assert client.get(veiculo_url).json()["status"] == "disponivel"

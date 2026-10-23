@@ -12,8 +12,8 @@
   <div class="estrutura">
     <nav class="navegacao" aria-label="Seções">
       <span class="navegacao__marca">Rodagem</span>
-      <a class="navegacao__link" href="#inicio" data-tela="inicio">
-        <span class="navegacao__icone" aria-hidden="true">⌂</span>Início</a>
+      <a class="navegacao__link" href="#painel" data-tela="painel">
+        <span class="navegacao__icone" aria-hidden="true">▦</span>Painel</a>
       <a class="navegacao__link" href="#deslocamentos" data-tela="deslocamentos">
         <span class="navegacao__icone" aria-hidden="true">⇄</span>Deslocamentos</a>
       <a class="navegacao__link" href="#veiculos" data-tela="veiculos">
@@ -24,22 +24,106 @@
 
     <main id="conteudo" class="conteudo" tabindex="-1">
 
-      <!-- Início -->
-      <section class="tela" id="tela-inicio" data-titulo="Início" hidden>
+      <!-- Painel -->
+      <section class="tela" id="tela-painel" data-titulo="Painel" hidden>
         <header class="tela__cabecalho">
-          <h1 class="tela__titulo">Rodagem</h1>
-          <p class="tela__subtitulo">Gestão de veículos e deslocamentos</p>
+          <h1 class="tela__titulo">Painel</h1>
+          <p class="tela__subtitulo">Indicadores calculados a partir dos dados cadastrados</p>
         </header>
-        <div class="cartao">
-          <h2 class="cartao__titulo">Situação do sistema</h2>
-          <p id="saude-status" class="saude" aria-live="polite">Verificando…</p>
+
+        <form class="filtros filtros--periodo" id="painel-periodo">
+          <div class="campo">
+            <label class="campo__rotulo" for="painel-inicio">Saídas a partir de</label>
+            <input class="campo__entrada" id="painel-inicio" name="data_inicio" type="date">
+          </div>
+          <div class="campo">
+            <label class="campo__rotulo" for="painel-fim">Saídas até</label>
+            <input class="campo__entrada" id="painel-fim" name="data_fim" type="date">
+          </div>
+          <div class="filtros__acoes">
+            <button type="submit" class="botao botao--primario">Aplicar período</button>
+            <button type="button" class="botao" id="painel-padrao">Período padrão</button>
+          </div>
+        </form>
+        <p class="alerta alerta--erro" id="painel-erro" role="alert" hidden></p>
+        <p class="contagem" id="painel-periodo-texto" aria-live="polite"></p>
+
+        <div id="painel-conteudo" hidden>
+          <div class="indicadores">
+            <article class="indicador" aria-labelledby="ind-veiculos-r">
+              <h2 class="indicador__rotulo" id="ind-veiculos-r">Veículos</h2>
+              <p class="indicador__valor" id="ind-veiculos"></p>
+              <p class="indicador__detalhe" id="ind-veiculos-d"></p>
+            </article>
+            <article class="indicador" aria-labelledby="ind-desl-r">
+              <h2 class="indicador__rotulo" id="ind-desl-r">Deslocamentos no período</h2>
+              <p class="indicador__valor" id="ind-desl"></p>
+              <p class="indicador__detalhe" id="ind-desl-d"></p>
+            </article>
+            <article class="indicador" aria-labelledby="ind-viag-r">
+              <h2 class="indicador__rotulo" id="ind-viag-r">Viagens previstas × realizadas</h2>
+              <p class="indicador__valor" id="ind-viag"></p>
+              <div class="proporcao" id="ind-viag-barra" aria-hidden="true"></div>
+              <p class="indicador__detalhe" id="ind-viag-d"></p>
+            </article>
+          </div>
+
+          <div class="indicadores indicadores--secundarios">
+            <article class="indicador indicador--pequeno" aria-labelledby="ind-taxa-r">
+              <h2 class="indicador__rotulo" id="ind-taxa-r">Taxa de realização</h2>
+              <p class="indicador__valor" id="ind-taxa"></p>
+            </article>
+            <article class="indicador indicador--pequeno" aria-labelledby="ind-km-r">
+              <h2 class="indicador__rotulo" id="ind-km-r">Distância percorrida</h2>
+              <p class="indicador__valor" id="ind-km"></p>
+            </article>
+            <article class="indicador indicador--pequeno" aria-labelledby="ind-media-r">
+              <h2 class="indicador__rotulo" id="ind-media-r">Média por viagem</h2>
+              <p class="indicador__valor" id="ind-media"></p>
+            </article>
+            <article class="indicador indicador--pequeno" aria-labelledby="ind-uso-r">
+              <h2 class="indicador__rotulo" id="ind-uso-r">Utilização da frota</h2>
+              <p class="indicador__valor" id="ind-uso"></p>
+            </article>
+          </div>
+
+          <div class="graficos">
+            <section class="cartao" aria-labelledby="graf-fin-t">
+              <h2 class="cartao__titulo" id="graf-fin-t">Por finalidade</h2>
+              <ul class="grafico" id="graf-finalidade"></ul>
+            </section>
+            <section class="cartao" aria-labelledby="graf-dest-t">
+              <h2 class="cartao__titulo" id="graf-dest-t">Destinos mais frequentes</h2>
+              <ul class="grafico" id="graf-destinos"></ul>
+            </section>
+            <section class="cartao" aria-labelledby="graf-mes-t">
+              <h2 class="cartao__titulo" id="graf-mes-t">Deslocamentos por mês</h2>
+              <ul class="grafico" id="graf-meses"></ul>
+            </section>
+          </div>
         </div>
-        <div class="atalhos">
-          <a class="atalhos__item" href="#deslocamentos">Registrar ou consultar deslocamentos</a>
-          <a class="atalhos__item" href="#veiculos">Cadastrar veículos</a>
-          <a class="atalhos__item" href="#motoristas">Cadastrar motoristas</a>
-        </div>
-        <p class="nota">O painel de indicadores chega na Sprint 3.</p>
+
+        <p class="estado-vazio" id="painel-vazio" hidden>
+          Nenhum deslocamento com saída neste período. Ajuste as datas ou
+          <a href="#deslocamentos">registre um deslocamento</a>.
+        </p>
+
+        <section class="cartao" aria-labelledby="proximas-t">
+          <h2 class="cartao__titulo" id="proximas-t">Próximas saídas previstas</h2>
+          <div class="tabela-rolagem">
+            <table class="tabela">
+              <thead>
+                <tr>
+                  <th scope="col">Saída</th><th scope="col">Veículo</th><th scope="col">Motorista</th>
+                  <th scope="col">Destino</th><th scope="col">Finalidade</th>
+                </tr>
+              </thead>
+              <tbody id="proximas-linhas"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <p class="nota">Situação do sistema: <span id="saude-status" class="saude" aria-live="polite">verificando…</span></p>
       </section>
 
       <!-- Veículos -->
