@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rodagem — Gestão de Veículos e Deslocamentos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+
+<div class="app">
+
+  <!-- ─────────────────────────── navegação ─────────────────────────── -->
+  <nav class="rail" aria-label="Seções do sistema">
+    <div class="rail__marca">
+      <span class="rail__sigla">RG</span>
+      <span class="rail__nome">Rodagem<small>controle de frota</small></span>
+    </div>
+    <ul class="rail__itens">
+      <li><button class="rail__link is-ativo" data-pagina="painel">Painel</button></li>
+      <li><button class="rail__link" data-pagina="deslocamentos">Deslocamentos</button></li>
+      <li><button class="rail__link" data-pagina="veiculos">Veículos</button></li>
+      <li><button class="rail__link" data-pagina="motoristas">Motoristas</button></li>
+    </ul>
+    <p class="rail__rodape">MVP 0.1 <a href="/docs" target="_blank" rel="noopener">API</a></p>
+  </nav>
+
+  <main id="conteudo" class="conteudo">
+
+    <!-- ───────────────────────── painel ───────────────────────── -->
+    <section class="pagina is-ativa" id="pagina-painel">
+      <header class="cabecalho">
+        <div>
+          <h1>Painel da frota</h1>
+          <p class="cabecalho__linha" id="painel-periodo">Carregando o período…</p>
+        </div>
+        <form class="filtro-periodo" id="form-periodo">
+          <label>De <input type="date" name="data_inicio" id="periodo-inicio"></label>
+          <label>Até <input type="date" name="data_fim" id="periodo-fim"></label>
+          <button class="btn btn--claro" type="submit">Aplicar período</button>
+        </form>
+      </header>
+
+      <!-- quadro de saídas: o elemento central do painel -->
+      <section class="quadro" aria-labelledby="quadro-titulo">
+        <div class="quadro__topo">
+          <h2 id="quadro-titulo">Próximas saídas</h2>
+          <span class="quadro__hoje" id="quadro-hoje"></span>
+        </div>
+        <ol class="quadro__lista" id="quadro-lista">
+          <li class="quadro__vazio">Carregando…</li>
+        </ol>
+      </section>
+
+      <h2 class="secao-titulo">Indicadores do período</h2>
+      <div class="indicadores" id="indicadores"></div>
+
+      <div class="graficos">
+        <article class="painel-bloco">
+          <h3>Viagens previstas e realizadas</h3>
+          <div class="barras" id="grafico-status"></div>
+        </article>
+        <article class="painel-bloco">
+          <h3>Deslocamentos por finalidade</h3>
+          <div class="barras" id="grafico-finalidade"></div>
+        </article>
+        <article class="painel-bloco">
+          <h3>Destinos mais frequentes</h3>
+          <div class="barras" id="grafico-destinos"></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ──────────────────── deslocamentos ──────────────────── -->
+    <section class="pagina" id="pagina-deslocamentos">
+      <header class="cabecalho">
+        <div>
+          <h1>Deslocamentos</h1>
+          <p class="cabecalho__linha">Registre uma saída e acompanhe o histórico de viagens.</p>
+        </div>
+        <button class="btn btn--principal" id="btn-novo-deslocamento">Registrar deslocamento</button>
+      </header>
+
+      <form class="filtros" id="filtros-deslocamento">
+        <label>Destino <input type="search" name="destino" placeholder="Ex.: Campinas"></label>
+        <label>Veículo
+          <select name="veiculo_id" data-fonte="veiculos"><option value="">Todos</option></select>
+        </label>
+        <label>Motorista
+          <select name="motorista_id" data-fonte="motoristas"><option value="">Todos</option></select>
+        </label>
+        <label>Situação
+          <select name="status">
+            <option value="">Todas</option>
+            <option value="previsto">Prevista</option>
+            <option value="em_andamento">Em andamento</option>
+            <option value="realizado">Realizada</option>
+            <option value="cancelado">Cancelada</option>
+          </select>
+        </label>
+        <label>Finalidade
+          <select name="finalidade">
+            <option value="">Todas</option>
+            <option value="administrativa">Administrativa</option>
+            <option value="operacional">Operacional</option>
+            <option value="manutencao">Manutenção</option>
+            <option value="entrega">Entrega</option>
+            <option value="visita_tecnica">Visita técnica</option>
+            <option value="outros">Outros</option>
+          </select>
+        </label>
+        <label>Saída de <input type="date" name="data_inicio"></label>
+        <label>até <input type="date" name="data_fim"></label>
+        <div class="filtros__acoes">
+          <button class="btn btn--claro" type="submit">Filtrar</button>
+          <button class="btn btn--texto" type="reset">Limpar</button>
+        </div>
+      </form>
+
+      <div class="tabela-area" id="lista-deslocamentos"></div>
+    </section>
+
+    <!-- ──────────────────────── veículos ──────────────────────── -->
+    <section class="pagina" id="pagina-veiculos">
+      <header class="cabecalho">
+        <div>
+          <h1>Veículos</h1>
+          <p class="cabecalho__linha">Cadastro completo da frota, com situação e quilometragem.</p>
+        </div>
+        <button class="btn btn--principal" id="btn-novo-veiculo">Cadastrar veículo</button>
+      </header>
+
+      <form class="filtros" id="filtros-veiculo">
+        <label>Buscar <input type="search" name="busca" placeholder="Placa, modelo ou marca"></label>
+        <label>Situação
+          <select name="status">
+            <option value="">Todas</option>
+            <option value="disponivel">Disponível</option>
+            <option value="em_viagem">Em viagem</option>
+            <option value="manutencao">Em manutenção</option>
+            <option value="inativo">Inativo</option>
+          </select>
+        </label>
+        <div class="filtros__acoes">
+          <button class="btn btn--claro" type="submit">Filtrar</button>
+          <button class="btn btn--texto" type="reset">Limpar</button>
+        </div>
+      </form>
+
+      <div class="tabela-area" id="lista-veiculos"></div>
+    </section>
+
+    <!-- ─────────────────────── motoristas ─────────────────────── -->
+    <section class="pagina" id="pagina-motoristas">
+      <header class="cabecalho">
+        <div>
+          <h1>Motoristas</h1>
+          <p class="cabecalho__linha">Condutores habilitados a assumir os deslocamentos.</p>
+        </div>
+        <button class="btn btn--principal" id="btn-novo-motorista">Cadastrar motorista</button>
+      </header>
+      <div class="tabela-area" id="lista-motoristas"></div>
+    </section>
+
+  </main>
+</div>
+
+<!-- barra inferior (mobile) -->
+<nav class="barra-mobile" aria-label="Seções do sistema">
+  <button class="barra-mobile__link is-ativo" data-pagina="painel">Painel</button>
+  <button class="barra-mobile__link" data-pagina="deslocamentos">Viagens</button>
+  <button class="barra-mobile__link" data-pagina="veiculos">Veículos</button>
+  <button class="barra-mobile__link" data-pagina="motoristas">Motoristas</button>
+</nav>
+
+<!-- modal -->
+<div class="modal" id="modal" hidden>
+  <div class="modal__fundo" data-fechar></div>
+  <div class="modal__caixa" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+    <header class="modal__topo">
+      <h2 id="modal-titulo">Formulário</h2>
+      <button class="modal__fechar" data-fechar aria-label="Fechar">&times;</button>
+    </header>
+    <div class="modal__corpo" id="modal-corpo"></div>
+  </div>
+</div>
+
+<div class="avisos" id="avisos" aria-live="polite"></div>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
