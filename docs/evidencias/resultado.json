@@ -1,0 +1,556 @@
+{
+  "gerado_em": "2026-10-23T14:45:15",
+  "duracao_s": 81.2,
+  "total": 72,
+  "ok": 64,
+  "falhas": 0,
+  "nao_testado": 8,
+  "verificacoes": [
+    {
+      "id": "LV-00",
+      "descricao": "Banco temporário realmente vazio (API)",
+      "resultado": "OK",
+      "detalhe": ""
+    },
+    {
+      "id": "LV-01",
+      "descricao": "Painel sem dados: zeros, sem NaN/undefined e aviso de estado vazio",
+      "resultado": "OK",
+      "detalhe": "{'ind-veiculos': '0', 'ind-veiculos-d': '0 disponíveis · 0 em viagem · 0 em manutenção · 0 inativos', 'ind-desl': '0', 'ind-desl-d': '0 previstos · 0 em andamento · 0 realizados · 0 cancelados', 'ind-viag': '0 × 0', 'ind-taxa': '0%', 'ind-km': '0 km', 'ind-media': '0 km', 'ind-uso': '0%'}"
+    },
+    {
+      "id": "LV-02",
+      "descricao": "Painel mostra 'Nenhuma saída prevista' na tabela de próximas saídas",
+      "resultado": "OK",
+      "detalhe": ""
+    },
+    {
+      "id": "LV-03",
+      "descricao": "Lista de veiculos vazia mostra mensagem (sem linhas em branco)",
+      "resultado": "OK",
+      "detalhe": "Nenhum veículo encontrado com esses filtros."
+    },
+    {
+      "id": "LV-04",
+      "descricao": "Lista de motoristas vazia mostra mensagem (sem linhas em branco)",
+      "resultado": "OK",
+      "detalhe": "Nenhum motorista encontrado com esses filtros."
+    },
+    {
+      "id": "LV-05",
+      "descricao": "Lista de deslocamentos vazia mostra mensagem (sem linhas em branco)",
+      "resultado": "OK",
+      "detalhe": "Nenhum deslocamento encontrado com esses filtros."
+    },
+    {
+      "id": "LV-06",
+      "descricao": "Registrar deslocamento sem cadastros: 422 em português com campo marcado",
+      "resultado": "OK",
+      "detalhe": "veiculo_id: Campo obrigatório."
+    },
+    {
+      "id": "CA01-c",
+      "descricao": "Veículo: placa inválida → 422 com a mensagem no campo placa",
+      "resultado": "OK",
+      "detalhe": "placa: Placa inválida. Use o padrão ABC1234 ou ABC1D23."
+    },
+    {
+      "id": "CRUD-V1",
+      "descricao": "Veículo: criar 2 pela tela → aparecem na API e na tabela (placa normalizada, 'Disponível')",
+      "resultado": "OK",
+      "detalhe": "['HOM1A11', 'HOM2B22']"
+    },
+    {
+      "id": "CA01-b",
+      "descricao": "Veículo: placa duplicada → 409 com mensagem e diálogo aberto",
+      "resultado": "OK",
+      "detalhe": ""
+    },
+    {
+      "id": "CRUD-V2",
+      "descricao": "Veículo: busca filtra a tabela",
+      "resultado": "OK",
+      "detalhe": ""
+    },
+    {
+      "id": "RACE-1",
+      "descricao": "Respostas fora de ordem: a busca antiga e lenta não sobrescreve a mais nova",
+      "resultado": "OK",
+      "detalhe": "HOM2B22\tChevrolet Spin\t2021\t—\t2.000\tDisponível\t\nEditar\nExcluir"
+    },
+    {
+      "id": "CRUD-V3",
+      "descricao": "Veículo: editar modelo e cor → gravado; outros campos intactos",
+      "resultado": "OK",
+      "detalhe": "{'placa': 'HOM2B22', 'marca': 'Chevrolet', 'modelo': 'Modelo Editado', 'ano': 2021, 'cor': 'Verde', 'tipo': None, 'km_atual': 2000.0, 'status': 'disponivel', 'id': 2, 'criado_em': '2026-10-23T14:43:59.020494'}"
+    },
+    {
+      "id": "CRUD-M0",
+      "descricao": "Motorista: CNH com 3 dígitos → 422 no campo cnh",
+      "resultado": "OK",
+      "detalhe": ""
+    },
+    {
+      "id": "CRUD-M1",
+      "descricao": "Motorista: criar 2 pela tela → CNH normalizada para 11 dígitos",
+      "resultado": "OK",
+      "detalhe": "['00000000011', '00000000022']"
+    },
+    {
+      "id": "CRUD-M2",
+      "descricao": "Motorista: editar (desativar + telefone) → API e selo 'Inativo' na tabela",
+      "resultado": "OK",
+      "detalhe": ""
+    },
+    {
+      "id": "CRUD-M3",
+      "descricao": "Motorista: filtro 'Somente ativos' esconde o inativo",
+      "resultado": "OK",
+      "detalhe": ""
+    },
+    {
+      "id": "CA02-b",
+      "descricao": "Deslocamento: retorno antes da saída → 422 na tela",
+      "resultado": "OK",
+      "detalhe": "A data de retorno não pode ser anterior à data de saída."
+    },
+    {
+      "id": "CA02-a",
+      "descricao": "Deslocamento: registrar pela tela → 201; histórico traz veículo e motorista; km inicial herdado",
+      "resultado": "OK",
+      "detalhe": "{'veiculo_id': 1, 'motorista_id': 1, 'destino': 'Destino Norte', 'data_saida': '2026-10-23', 'data_retorno': '2026-10-24', 'finalidade': 'entrega', 'observacao': None, 'km_inicial': 1000.0, 'km_final': None, 'status': 'em_andamento', 'id': 1, 'criado_em': '2026-10-23T14:44:08.134744', 'km_percorrido': None, 'veiculo': {'id': 1, 'placa': 'HOM1A11', 'marca': 'Fiat', 'modelo': 'Strada'}, 'motorista': {'id': 1, 'nome': 'Ana Homolog'}}"
+    },
+    {
+      "id": "CRUD-D1",
+      "descricao": "Veículo do deslocamento em andamento passa a 'em viagem'",
+      "resultado": "OK",
+      "detalhe": ""
+    },
+    {
+      "id": "CA02-c",
+      "descricao": "Deslocamento: mesmo veículo no mesmo período → 409 citando o conflito",
+      "resultado": "OK",
+      "detalhe": "Conflito de agenda: o veículo já está no deslocamento #1 para Destino Norte de 23/10/2026 a 24/10/2026. Escolha outras datas ou outro veículo."
+    },
+    {
+      "id": "CRUD-D2",
+      "descricao": "Deslocamento: segundo registro (veículo 2, previsto) criado pela tela",
+      "resultado": "OK",
+      "detalhe": ""
+    },
+    {
+      "id": "CA02-d",
+      "descricao": "Deslocamento: filtro por destino retorna só os correspondentes",
+      "resultado": "OK",
+      "detalhe": ""
+    },
+    {
+      "id": "BUSCA-1",
+      "descricao": "Filtro de deslocamentos: escolher uma opção dispara uma única busca (antes eram duas)",
+      "resultado": "OK",
+      "detalhe": "1 requisições"
+    },
+    {
+      "id": "CRUD-D3",
+      "descricao": "Deslocamento: editar observação → gravada",
+      "resultado": "OK",
+      "detalhe": ""
+    },
+    {
+      "id": "IND-1",
+      "descricao": "Painel após criar 2 deslocamentos: bate com o SQL independente e com o cálculo manual",
+      "resultado": "OK",
+      "detalhe": "diferenças (tela, esperado): {}"
+    },
+    {
+      "id": "REV-1",
+      "descricao": "Veículo com viagem em andamento não pode virar 'Disponível' pela tela (409); situação mantida",
+      "resultado": "OK",
+      "detalhe": "situação=em_viagem; alerta='O veículo HOM1A11 tem uma viagem em andamento. Conclua ou cancele a viagem antes de torná-lo disponível.'"
+    },
+    {
+      "id": "CRUD-D4",
+      "descricao": "Concluir viagem com km final menor que o inicial → 422 na tela",
+      "resultado": "OK",
+      "detalhe": ""
+    },
+    {
+      "id": "CRUD-D5",
+      "descricao": "Concluir viagem → realizada, 120 km, veículo disponível e km atualizado",
+      "resultado": "OK",
+      "detalhe": "veículo: disponivel km=1120.0"
+    },
+    {
+      "id": "IND-2",
+      "descricao": "Painel após concluir: 1 × 1, 120 km, taxa 50%, nenhum veículo em viagem",
+      "resultado": "OK",
+      "detalhe": "diferenças (tela, esperado): {}"
+    },
+    {
+      "id": "CRUD-D6",
+      "descricao": "Deslocamento: excluir pela tela → some da tabela e da API",
+      "resultado": "OK",
+      "detalhe": ""
+    },
+    {
+      "id": "IND-3",
+      "descricao": "Painel após excluir a viagem prevista: 0 × 1, taxa 100%, utilização 50%",
+      "resultado": "OK",
+      "detalhe": "diferenças (tela, esperado): {}"
+    },
+    {
+      "id": "IND-4",
+      "descricao": "Painel: período sem dados → zeros e estado vazio; veículos continuam contados",
+      "resultado": "OK",
+      "detalhe": ""
+    },
+    {
+      "id": "IND-5",
+      "descricao": "Painel: voltar à tela sem ter escolhido datas usa o período padrão da API (requisição sem datas)",
+      "resultado": "OK",
+      "detalhe": "http://127.0.0.1:8780/api/dashboard/indicadores"
+    },
+    {
+      "id": "IND-6",
+      "descricao": "Painel: as datas escolhidas pelo usuário são enviadas à API",
+      "resultado": "OK",
+      "detalhe": "http://127.0.0.1:8780/api/dashboard/indicadores?data_inicio=2026-10-01&data_fim=2026-10-31"
+    },
+    {
+      "id": "CRUD-V4",
+      "descricao": "Excluir veículo com histórico → 409 em aviso e veículo mantido",
+      "resultado": "OK",
+      "detalhe": "O veículo HOM1A11 tem 1 deslocamento(s) registrado(s) e não pode ser excluído. Mude a situação para inativo."
+    },
+    {
+      "id": "CONF-1",
+      "descricao": "Confirmação de exclusão: Esc cancela, não exclui e o diálogo pode ser reaberto",
+      "resultado": "OK",
+      "detalhe": ""
+    },
+    {
+      "id": "CRUD-X",
+      "descricao": "Excluir veículo e motorista sem histórico pela tela → removidos da API",
+      "resultado": "OK",
+      "detalhe": ""
+    },
+    {
+      "id": "PERS-0",
+      "descricao": "Servidor encerrado (processo terminado)",
+      "resultado": "OK",
+      "detalhe": ""
+    },
+    {
+      "id": "PERS-1",
+      "descricao": "Após reiniciar: veículos, motoristas e deslocamentos idênticos (API)",
+      "resultado": "OK",
+      "detalhe": "antes={'veiculos': 1, 'motoristas': 1, 'deslocamentos': 1} depois={'veiculos': 1, 'motoristas': 1, 'deslocamentos': 1}"
+    },
+    {
+      "id": "PERS-2",
+      "descricao": "Após reiniciar: o painel mostra os mesmos indicadores",
+      "resultado": "OK",
+      "detalhe": "{'ind-veiculos': '1', 'ind-veiculos-d': '1 disponível · 0 em viagem · 0 em manutenção · 0 inativos', 'ind-desl': '1', 'ind-desl-d': '0 previstos · 0 em andamento · 1 realizado · 0 cancelados', 'ind-viag': '0 × 1', 'ind-taxa': '100%', 'ind-km': '120 km', 'ind-media': '120 km', 'ind-uso': '100%'} -> {'ind-veiculos': '1', 'ind-veiculos-d': '1 disponível · 0 em viagem · 0 em manutenção · 0 inativos', 'ind-desl': '1', 'ind-desl-d': '0 previstos · 0 em andamento · 1 realizado · 0 cancelados', 'ind-viag': '0 × 1', 'ind-taxa': '100%', 'ind-km': '120 km', 'ind-media': '120 km', 'ind-uso': '100%'}"
+    },
+    {
+      "id": "PERS-3",
+      "descricao": "Após reiniciar: a tabela de veículos mostra os dados gravados",
+      "resultado": "OK",
+      "detalhe": ""
+    },
+    {
+      "id": "SEED-1",
+      "descricao": "Seed fictício carrega em banco novo",
+      "resultado": "OK",
+      "detalhe": "Dados fictícios criados: 6 veículos, 4 motoristas, 156 deslocamentos."
+    },
+    {
+      "id": "SEED-2",
+      "descricao": "Painel com seed (156 deslocamentos): todos os números iguais ao SQL independente",
+      "resultado": "OK",
+      "detalhe": "diferenças (tela, esperado): {}"
+    },
+    {
+      "id": "RESP-1",
+      "descricao": "Desktop 1280 px: nenhuma das 4 telas tem rolagem horizontal",
+      "resultado": "OK",
+      "detalhe": ""
+    },
+    {
+      "id": "RESP-2",
+      "descricao": "Celular 375 px: nenhuma das 4 telas tem rolagem horizontal",
+      "resultado": "OK",
+      "detalhe": "{'painel': True, 'veiculos': True, 'motoristas': True, 'deslocamentos': True}"
+    },
+    {
+      "id": "INT-1",
+      "descricao": "Integração: 138 chamadas à API feitas pela interface, nenhuma resposta 5xx",
+      "resultado": "OK",
+      "detalhe": "[]"
+    },
+    {
+      "id": "INT-2",
+      "descricao": "Integração: nenhum arquivo estático/página com erro 4xx (CSS, JS, HTML)",
+      "resultado": "OK",
+      "detalhe": "[]"
+    },
+    {
+      "id": "INT-3",
+      "descricao": "Integração: nenhuma exceção JavaScript não tratada nas páginas",
+      "resultado": "OK",
+      "detalhe": "[]"
+    },
+    {
+      "id": "INT-4",
+      "descricao": "Integração: erros de console limitados às recusas 4xx esperadas da API",
+      "resultado": "OK",
+      "detalhe": "[]"
+    },
+    {
+      "id": "INT-5",
+      "descricao": "Integração: recusas 4xx vieram só de ações deliberadas (validação, conflito, exclusão bloqueada)",
+      "resultado": "OK",
+      "detalhe": "[(409, 'DELETE', '/api/veiculos/{id}'), (409, 'POST', '/api/deslocamentos'), (409, 'POST', '/api/veiculos'), (409, 'PUT', '/api/veiculos/{id}'), (422, 'POST', '/api/deslocamentos'), (422, 'POST', '/api/deslocamentos/{id}/concluir'), (422, 'POST', '/api/motoristas'), (422, 'POST', '/api/veiculos')]"
+    },
+    {
+      "id": "ENT-1",
+      "descricao": "Entregáveis obrigatórios presentes (19 arquivos)",
+      "resultado": "OK",
+      "detalhe": "[]"
+    },
+    {
+      "id": "ENT-2",
+      "descricao": "README: instalação e execução local (PowerShell), exemplos de uso e limitações",
+      "resultado": "OK",
+      "detalhe": "[]"
+    },
+    {
+      "id": "ENT-3",
+      "descricao": "Critérios de aceite CA01, CA02 e CA03 têm teste automatizado",
+      "resultado": "OK",
+      "detalhe": "[]"
+    },
+    {
+      "id": "ENT-4",
+      "descricao": "Suíte automatizada: 64 passaram, 0 falharam",
+      "resultado": "OK",
+      "detalhe": "................................................................         [100%]\n64 passed in 5.34s\n"
+    },
+    {
+      "id": "ENT-5",
+      "descricao": "Lint (ruff check) e formatação (ruff format --check) sem pendências",
+      "resultado": "OK",
+      "detalhe": ""
+    },
+    {
+      "id": "SEG-1",
+      "descricao": "Git: 75 arquivos versionados e 9 commits (histórico inteiro) sem segredos, banco, chave, .env ou e-mail fora da lista permitida",
+      "resultado": "OK",
+      "detalhe": ""
+    },
+    {
+      "id": "SEG-2",
+      "descricao": ".gitignore cobre .env, bancos .db, chaves .pem e ambientes virtuais",
+      "resultado": "OK",
+      "detalhe": "[]"
+    },
+    {
+      "id": "SEG-3",
+      "descricao": "Autor dos commits configurado só neste repositório com e-mail noreply",
+      "resultado": "OK",
+      "detalhe": "elisfarias-ia@users.noreply.github.com"
+    },
+    {
+      "id": "CLONE-1",
+      "descricao": "git clone do repositório local (só o que foi commitado)",
+      "resultado": "OK",
+      "detalhe": ""
+    },
+    {
+      "id": "CLONE-2",
+      "descricao": "scripts\\configurar.ps1 cria o ambiente virtual e instala as dependências",
+      "resultado": "OK",
+      "detalhe": "Criando ambiente virtual em .venv ...\nInstalando dependencias (backend\\requirements.txt) ...\nAmbiente pronto. Rode .\\scripts\\iniciar.ps1 para subir a aplicacao.\n"
+    },
+    {
+      "id": "CLONE-3",
+      "descricao": "Testes no clone limpo: 64 passaram, 0 falharam",
+      "resultado": "OK",
+      "detalhe": "................................................................         [100%]\n64 passed in 5.63s\n"
+    },
+    {
+      "id": "CLONE-4",
+      "descricao": "Seed fictício no clone (banco temporário)",
+      "resultado": "OK",
+      "detalhe": ""
+    },
+    {
+      "id": "CLONE-5",
+      "descricao": "Servidor do clone sobe: página inicial e painel respondem com os dados do seed",
+      "resultado": "OK",
+      "detalhe": "{'periodo_inicio': '2026-07-25', 'periodo_fim': '2026-11-22', 'total_veiculos': 6, 'veiculos_disponiveis': 4, 'veiculos_em_viagem': 1, 'veiculos_manutencao': 1, 'veiculos_inativos': 0, 'total_deslocam"
+    },
+    {
+      "id": "NT-1",
+      "descricao": "Deploy no Vercel",
+      "resultado": "NAO_TESTADO",
+      "detalhe": "não feito por decisão da usuária; exige login pessoal e o SQLite em arquivo não persiste em funções serverless"
+    },
+    {
+      "id": "NT-2",
+      "descricao": "GitHub CLI (gh) e criação de repositório privado novo",
+      "resultado": "NAO_TESTADO",
+      "detalhe": "gh não está instalado; a usuária escolheu manter o repositório atual"
+    },
+    {
+      "id": "NT-3",
+      "descricao": "Login / autenticação",
+      "resultado": "NAO_TESTADO",
+      "detalhe": "extensão opcional, não implementada (pós-MVP)"
+    },
+    {
+      "id": "NT-4",
+      "descricao": "Lint de JavaScript",
+      "resultado": "NAO_TESTADO",
+      "detalhe": "exigiria Node/ESLint (ADR-006); cobertura parcial por testes estáticos e pelo navegador"
+    },
+    {
+      "id": "NT-5",
+      "descricao": "Leitor de tela (acessibilidade assistiva)",
+      "resultado": "NAO_TESTADO",
+      "detalhe": "só rótulos, aria-* e foco foram conferidos"
+    },
+    {
+      "id": "NT-6",
+      "descricao": "Firefox, Safari/WebKit e celular físico",
+      "resultado": "NAO_TESTADO",
+      "detalhe": "só Chromium (Playwright e navegador embutido), em largura emulada"
+    },
+    {
+      "id": "NT-7",
+      "descricao": "Uso simultâneo por várias pessoas (corrida na checagem de agenda)",
+      "resultado": "NAO_TESTADO",
+      "detalhe": "risco aceito no MVP (D-11 no backlog)"
+    },
+    {
+      "id": "NT-8",
+      "descricao": "Python 3.11–3.14 e outros sistemas operacionais",
+      "resultado": "NAO_TESTADO",
+      "detalhe": "validado só em Windows 11 com Python 3.15.1"
+    }
+  ],
+  "capturas": [
+    {
+      "arquivo": "01-painel-vazio-desktop.png",
+      "descricao": "Painel com banco vazio: zeros e aviso de estado vazio"
+    },
+    {
+      "arquivo": "02-veiculos-vazio-desktop.png",
+      "descricao": "Tela de veiculos com banco vazio"
+    },
+    {
+      "arquivo": "03-motoristas-vazio-desktop.png",
+      "descricao": "Tela de motoristas com banco vazio"
+    },
+    {
+      "arquivo": "04-deslocamentos-vazio-desktop.png",
+      "descricao": "Tela de deslocamentos com banco vazio"
+    },
+    {
+      "arquivo": "05-deslocamento-sem-cadastros-422.png",
+      "descricao": "Formulário de deslocamento sem veículos/motoristas: erros de validação nos campos"
+    },
+    {
+      "arquivo": "06-veiculo-validacao-422.png",
+      "descricao": "Cadastro de veículo com placa inválida e campos obrigatórios vazios"
+    },
+    {
+      "arquivo": "07-veiculo-placa-duplicada-409.png",
+      "descricao": "Cadastro de veículo com placa já existente (409)"
+    },
+    {
+      "arquivo": "08-veiculo-edicao.png",
+      "descricao": "Edição de veículo com os dados atuais preenchidos"
+    },
+    {
+      "arquivo": "09-motorista-validacao-cnh.png",
+      "descricao": "Cadastro de motorista com CNH inválida"
+    },
+    {
+      "arquivo": "10-motoristas-lista.png",
+      "descricao": "Lista de motoristas: um ativo e um inativo"
+    },
+    {
+      "arquivo": "11-deslocamento-formulario.png",
+      "descricao": "Formulário de registro de deslocamento"
+    },
+    {
+      "arquivo": "12-deslocamento-conflito-409.png",
+      "descricao": "Registro de deslocamento com conflito de agenda (409)"
+    },
+    {
+      "arquivo": "13-deslocamentos-lista.png",
+      "descricao": "Histórico de deslocamentos com os dois registros"
+    },
+    {
+      "arquivo": "14-painel-apos-criar.png",
+      "descricao": "Painel após criar um deslocamento em andamento e um previsto"
+    },
+    {
+      "arquivo": "14b-veiculo-situacao-bloqueada-409.png",
+      "descricao": "Tentativa de tornar 'Disponível' um veículo com viagem em andamento (409)"
+    },
+    {
+      "arquivo": "15-deslocamento-concluir.png",
+      "descricao": "Diálogo de conclusão de viagem com km final"
+    },
+    {
+      "arquivo": "16-painel-apos-concluir.png",
+      "descricao": "Painel após concluir a viagem: previstas × realizadas e km atualizados"
+    },
+    {
+      "arquivo": "17-confirmacao-exclusao.png",
+      "descricao": "Diálogo de confirmação antes de excluir"
+    },
+    {
+      "arquivo": "18-painel-apos-excluir.png",
+      "descricao": "Painel após excluir a viagem prevista"
+    },
+    {
+      "arquivo": "19-exclusao-bloqueada-historico.png",
+      "descricao": "Exclusão de veículo com histórico bloqueada (409): o aviso é a evidência"
+    },
+    {
+      "arquivo": "20-persistencia-apos-reiniciar.png",
+      "descricao": "Veículos após reiniciar o servidor: dados mantidos"
+    },
+    {
+      "arquivo": "21-painel-seed-desktop.png",
+      "descricao": "Painel com dados de demonstração (desktop 1280 px)"
+    },
+    {
+      "arquivo": "22-veiculos-seed-desktop.png",
+      "descricao": "Veículos com dados de demonstração"
+    },
+    {
+      "arquivo": "23-deslocamentos-seed-desktop.png",
+      "descricao": "Histórico de deslocamentos com filtros e dados"
+    },
+    {
+      "arquivo": "24-painel-mobile-375.png",
+      "descricao": "Painel em 375 px (celular): indicadores empilhados e navegação no rodapé"
+    },
+    {
+      "arquivo": "24b-painel-mobile-375-graficos.png",
+      "descricao": "Painel em 375 px: gráficos de barras"
+    },
+    {
+      "arquivo": "25-deslocamentos-mobile-375.png",
+      "descricao": "Histórico em 375 px: linhas viram cartões"
+    },
+    {
+      "arquivo": "26-formulario-mobile-375.png",
+      "descricao": "Formulário de deslocamento em tela cheia no celular"
+    }
+  ]
+}

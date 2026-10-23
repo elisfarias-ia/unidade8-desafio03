@@ -884,6 +884,21 @@ def cenario_indicadores(page, base, srv, reg, cap, ctx):
         "Exclusão de veículo com histórico bloqueada (409): o aviso é a evidência",
         com_avisos=True,
     )
+    page.get_by_role("button", name=f"Excluir veículo {v1['placa']}").click()
+    dialogo_confirmar = page.locator("#dialogo-confirmar")
+    expect(dialogo_confirmar).to_be_visible()
+    page.keyboard.press("Escape")
+    expect(dialogo_confirmar).not_to_be_visible()
+    aquietar(page)
+    reg.verificar(
+        "CONF-1",
+        "Confirmação de exclusão: Esc cancela, não exclui e o diálogo pode ser reaberto",
+        any(x["placa"] == v1["placa"] for x in srv.api("/api/veiculos")),
+    )
+    page.get_by_role("button", name=f"Excluir veículo {v1['placa']}").click()
+    expect(dialogo_confirmar).to_be_visible()
+    page.click("#dialogo-confirmar button[value=nao]")
+    expect(dialogo_confirmar).not_to_be_visible()
 
 
 def cenario_exclusoes(page, base, srv, reg, ctx):
@@ -1383,6 +1398,18 @@ def main() -> int:
         reg.nao_testado("CLONE-0", "Instalação a partir de clone limpo", "pulado com --sem-clone")
     else:
         clone_limpo(args.porta + 2, reg)
+
+    for id_, descricao, motivo in [
+        ("NT-1", "Deploy no Vercel", "não feito por decisão da usuária; exige login pessoal e o SQLite em arquivo não persiste em funções serverless"),
+        ("NT-2", "GitHub CLI (gh) e criação de repositório privado novo", "gh não está instalado; a usuária escolheu manter o repositório atual"),
+        ("NT-3", "Login / autenticação", "extensão opcional, não implementada (pós-MVP)"),
+        ("NT-4", "Lint de JavaScript", "exigiria Node/ESLint (ADR-006); cobertura parcial por testes estáticos e pelo navegador"),
+        ("NT-5", "Leitor de tela (acessibilidade assistiva)", "só rótulos, aria-* e foco foram conferidos"),
+        ("NT-6", "Firefox, Safari/WebKit e celular físico", "só Chromium (Playwright e navegador embutido), em largura emulada"),
+        ("NT-7", "Uso simultâneo por várias pessoas (corrida na checagem de agenda)", "risco aceito no MVP (D-11 no backlog)"),
+        ("NT-8", "Python 3.11–3.14 e outros sistemas operacionais", "validado só em Windows 11 com Python 3.15.1"),
+    ]:  # fmt: skip
+        reg.nao_testado(id_, descricao, motivo)
 
     fim = datetime.now()
     falhas = [i for i in reg.itens if i["resultado"] == "FALHA"]

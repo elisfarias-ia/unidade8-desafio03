@@ -275,3 +275,69 @@ Ressalva: sem latência de rede e em memória; em arquivo e via HTTP real os nú
 - **JavaScript sem lint** (G10) e leitor de tela; painel **não medido** a 800 px.
 - **Desempenho com arquivo SQLite e HTTP real** (só em memória, sem rede).
 - Console do navegador: contém `404/409/422` das minhas sondagens a registros excluídos e das recusas esperadas; a ausência de 404 em recursos estáticos será checada na S4.
+
+---
+
+## Sprint 4 — Homologação — 2026-10-23
+
+Escopo e decisões: **ADR-011** (S4 = homologação; Playwright em Python fora do sistema; `RODAGEM_DB`). Decisões da usuária no chat: S3 antes da S4; manter o repositório atual; Playwright fora do projeto; **sem** deploy no Vercel. "Validação de entrega" foi interpretada como **aceite da entrega** (CA01–CA03 + entregáveis + instalação a partir de clone limpo).
+
+### 1. Resultado da homologação (`.\scripts\homologar.ps1`)
+
+**64 OK · 0 FALHA · 8 NÃO TESTADO**, 28 capturas, 81 s, gerado em 2026-10-23T14:45:15. Servidor **real** com banco SQLite **temporário** (`RODAGEM_DB`) e Chromium 156 via Playwright 1.64.1. O banco do usuário não foi tocado (`LastWriteTime` e tamanho iguais antes e depois). Capturas, índice e `resultado.json` em [`docs/evidencias/`](evidencias/README.md).
+
+| Pedido | Verificações | Resultado |
+|---|---|---|
+| Criar, ler, editar, excluir | CRUD-V1..V4, CRUD-M0..M3, CRUD-D1..D6, CRUD-X, CONF-1, CA01-b/c, CA02-a/b/c/d (veículo, motorista e deslocamento, **pela tela**, conferidos na API) | ✅ |
+| Validação de entrega | ENT-1..5 (suíte automatizada: 64 passaram, 0 falharam), CLONE-1..5 (testes no clone limpo: 64 passaram, 0 falharam) | ✅ |
+| Lista vazia | LV-00..06 (painel com zeros e aviso, 3 listas com mensagem, formulário sem cadastros → 422) | ✅ |
+| Os 3 indicadores após mudanças | IND-1..6: painel após criar, concluir e excluir bate com **SQL independente** e com cálculo à mão; período vazio; período padrão × datas escolhidas | ✅ |
+| Persistência ao reiniciar | PERS-0..3: processo encerrado e reiniciado; API, painel e tabela idênticos | ✅ |
+| Integração frontend ↔ API | INT-1..5: 138 chamadas à API feitas pela interface, 0 respostas 5xx, 0 erros 4xx em arquivos estáticos, 0 exceções JS; recusas 4xx só de ações deliberadas (409/422) | ✅ |
+| Ausência de segredos no git | SEG-1..3 (75 arquivos e 9 commits, **histórico inteiro**), testes T4-01..04 do detector | ✅ |
+
+Gate de apoio: `ruff check` / `ruff format --check` limpos; `pytest`: **64 passed**; `verificar.ps1`: `lint=0 formato=0 testes=0`.
+Estabilidade: a homologação foi executada várias vezes seguidas sem falhas (3 execuções consecutivas com 45 OK antes das verificações novas; 2 execuções completas com clone limpo depois: 63 OK e 64 OK).
+
+### 2. Revisão independente do diff (S2–S4)
+
+Um agente separado (sem acesso às minhas justificativas) revisou `0d93a8f..HEAD`. Cada achado foi **verificado por mim** antes de agir:
+
+| # | Gravidade | Achado | Verificação e tratamento |
+|---|---|---|---|
+| 1 | Alta | Editar viagem para `em_andamento` sobrescrevia "manutenção"/"inativo" do veículo (regra 6) | **Reproduzido** (T1-35 falhava) → corrigido: iniciar/reativar viagem exige veículo e motorista escaláveis ✅ |
+| 2 | Média | `PUT /api/veiculos` deixava "Disponível" com viagem em andamento (e "Em viagem" sem viagem) | **Reproduzido** (T1-36 falhava) → corrigido: 409; nova regra 10 em `Requisitos.md` ✅ |
+| 3 | Baixa | Corrida na checagem de agenda (check-then-insert) | Não reproduzido (exige escrita simultânea). **Aceito no MVP**: D-11 no backlog e limitação no README ⚠️ |
+| 4 | Baixa | Lacuna de testes de `_liberar_se_ocioso` (cancelar, trocar de veículo, excluir) | T1-37 escrito: **passou de primeira** (a lógica já estava certa, faltava cobertura) ✅. Sem testes de JS/`esc()`: D-12 ⚠️ |
+| 5 | Baixa | Respostas fora de ordem no frontend | Corrigido (token de requisição nas 4 telas); **RACE-1** detecta o defeito ✅ |
+| 6 | Baixa | Busca duplicada nos filtros; período padrão do painel congelado | Corrigido; **BUSCA-1** (2 → 1 requisição) e **IND-5/6** ✅ |
+| 7 | Baixa | Detector imprimia 6 caracteres do segredo; falso positivo `pacote@18.3.1`; dedupe escondia achados | Corrigido ✅ |
+
+**Teste de mutação das correções:** repus as versões antigas dos 4 arquivos e rodei a homologação: **RACE-1, BUSCA-1, IND-5 e REV-1 falharam** como deveriam; arquivos restaurados e conferidos byte a byte. Sem essa prova, as verificações novas poderiam estar passando por acaso.
+Também confirmado pelo revisor: sem XSS (todo texto da API passa por `esc()`/`textContent`), fórmulas do painel conforme ADR-010, `confirmar()` sem promessas pendentes, sem segredos.
+
+### 3. Problemas encontrados na própria homologação
+
+| ID | Problema | Causa | Correção |
+|---|---|---|---|
+| P20 | 1ª execução: **CRUD-D6 FALHA** (linha excluída ainda na tabela) e as demais esperas eram frágeis | `wait_for_load_state("networkidle")` do Playwright resolve na hora se a página já atingiu o estado antes | Rastreador de requisições em andamento (`aquietar`) e `expect` com repetição ✅ |
+| P21 | Capturas enganosas: avisos cobrindo a tabela; no celular a barra de navegação fixa aparecia no meio da imagem | Avisos passageiros; captura de página inteira com elemento `position: fixed` | Avisos ocultos na captura (exceto a 19, onde são a prova); celular só com a janela visível ✅ |
+| P22 | "1 disponíveis", "1 previstos" | Faltava singular no painel | `plural()` em `painel.js`; a homologação compara com o texto esperado ✅ |
+| P23 | `DLL load failed … nome muito grande` ao importar `greenlet` | Mesmo limite de 260 caracteres do Windows (P2): ambiente na pasta da sessão | Ambiente e navegador em `%TEMP%\rodagem-hml` (caminho curto) ✅ |
+| P24 | **SEG-1 FALHOU:** o detector achou uma URL de exemplo com usuário e senha embutidos em `tests/backend/test_segredos.py` | Eu havia escrito uma credencial falsa por extenso, contrariando o próprio docstring | String montada em tempo de execução; commit **local ainda não publicado** corrigido com `--amend` (o commit antigo `eee6577` ficou só como objeto solto no reflog) ✅ |
+| P25 | Exemplo 5 do README mostrava 422, não o 409 prometido | `marca = "X"` curta demais | Corrigido; o bloco PowerShell do README foi **extraído e executado** de verdade ✅ |
+| P26 | Estimei ~200 MB de download; foram **718 MB** em disco (Chromium completo + headless shell + ffmpeg) | Estimativa minha | Tudo fora do projeto (`%TEMP%`), removível; informado à usuária ✅ |
+
+### 4. NÃO TESTADO (listado em `resultado.json`, NT-1..8)
+
+- **Deploy no Vercel** — não feito por decisão da usuária (login pessoal; SQLite em arquivo não persiste em funções serverless).
+- **`gh` CLI / criação de repositório privado novo** — `gh` não está instalado; a usuária escolheu manter o repositório atual.
+- **Login/autenticação** — extensão opcional, não implementada.
+- **Lint de JavaScript** (sem Node, ADR-006); **leitor de tela**; **Firefox, Safari e celular físico**.
+- **Uso simultâneo** por várias pessoas (D-11); **Python 3.11–3.14 e outros sistemas** (só Windows 11 + Python 3.15.1).
+
+### 5. GitHub — estado real
+
+- URL: https://github.com/elisfarias-ia/unidade8-desafio03 (existe; `git ls-remote` e API pública responderam).
+- **Visibilidade: PÚBLICA** (`"private": false`), embora a usuária tenha pedido repositório privado. Não foi alterado: mudar visibilidade ou criar outro repositório é decisão dela.
+- Remoto em `0d93a8f` (Sprint 1); local com os commits das Sprints 2, 3 e 4 **ainda não enviados** (push aguardando autorização).
